@@ -70,7 +70,7 @@ void loop() {
   phrase = words[k];
   int line = 0;
   
-  for (int i = 0; i < phrase.length(); i++)  {
+  for (int i = 0; i < sizeof(words) / sizeof(char[32]); i++)  {
     if (i == 15 && phrase[i + 1] != ' ' && line == 0) {
       int j = 0;
       for (int k = 15; k > 0; k--)  {
