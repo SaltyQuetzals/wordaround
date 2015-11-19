@@ -1,0 +1,17 @@
+image: pandrew/arduino:latest
+
+before_script:
+  - bundle_install
+
+stages:
+  - build
+
+job1:
+  stage: build
+  script:
+    - arduino --verify /build/jaflo/wordaround/wordaround.ino
+  only:
+    - master
+  tags:
+    - docker
+    - arduino
