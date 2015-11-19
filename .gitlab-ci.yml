@@ -1,5 +1,3 @@
-image: pandrew/arduino:latest
-
 before_script:
   - bundle_install
 
@@ -9,6 +7,8 @@ stages:
 verify:
   stage: build
   script:
+    - apt-get update -qy
+    - apt-get install -y arduino arduino-core
     - arduino --verify /build/jaflo/wordaround/wordaround.ino
   only:
     - master
