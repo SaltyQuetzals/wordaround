@@ -1,1 +1,1 @@
-WordAround. A copy of a popular word game.
+WordAround. A copy of a popular word game. Written in arduino.
