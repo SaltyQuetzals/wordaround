@@ -12,3 +12,5 @@ verify:
     - arduino --verify /build/jaflo/wordaround/wordaround.ino
   only:
     - master
+  tags:
+    - mysql
