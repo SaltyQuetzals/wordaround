@@ -6,12 +6,9 @@ before_script:
 stages:
   - build
 
-job1:
+verify:
   stage: build
   script:
     - arduino --verify /build/jaflo/wordaround/wordaround.ino
   only:
     - master
-  tags:
-    - docker
-    - arduino
