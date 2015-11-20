@@ -11,6 +11,8 @@ int buttonPin = 9;
 int buttonState = 0;
 boolean registeredPress = false;
 LiquidCrystal lcd(6, 7, 5, 8, 3, 2);
+int state = 0; // 0 = start, 1 = playing, 2 = select team, 3 = done
+long int roundStart = 0;
 
 void setup() {
   randomSeed(analogRead(10)); // pin 10 is free
@@ -36,68 +38,92 @@ void setup() {
   lcd.print("SD card");
   lcd.setCursor(0,1);
   lcd.print("initialized");
+  roundStart = millis();
   reread();
 }
 void loop() {
-  Serial.println(wordIndex);
-  Serial.println(prevWordIndex);
-  if (wordIndex != prevWordIndex) { 
-    int currentLength = 0;
-    lcd.clear();
-    for (int i = 0; i < sizeof(phrase) / sizeof(char); i++) {
-      phrase[i] = '\0';
-      lcd.print(' ');
-    }
-    for (int i = 0; i < sizeof(phrase) / sizeof(char); i++) {
-      if (words[wordIndex][i] == '\0' || words[wordIndex][i] == '\r') {
-        break;
-      } else {
-        phrase[i] = words[wordIndex][i];
-        currentLength++;
+  switch (state) {
+    case 0:
+      buttonState = digitalRead(buttonPin);
+      lcd.clear();
+      lcd.print("Press a button");
+      lcd.setCursor(0,1);
+      lcd.print("to start");
+      if (buttonState == HIGH) {
+        state = 1;
+        roundStart = millis();
       }
-    }
-    int line = 0;
-    lcd.clear();
-    for (int i = 0; i < currentLength; i++)  {
-      if (i == 15 && phrase[i+1] != ' ' && line == 0) {
-        int j = 0;
-        for (int k = 15; k > 0; k--)  {
-          if (phrase[k] == ' ')  {
-            j = k;
+    case 1:
+      if (abs(millis() - roundStart) > 1000*10) {
+        state = 2;
+      }
+      if (wordIndex != prevWordIndex) { 
+        int currentLength = 0;
+        lcd.clear();
+        for (int i = 0; i < sizeof(phrase) / sizeof(char); i++) {
+          phrase[i] = '\0';
+          lcd.print(' ');
+        }
+        for (int i = 0; i < sizeof(phrase) / sizeof(char); i++) {
+          if (words[wordIndex][i] == '\0' || words[wordIndex][i] == '\r') {
             break;
+          } else {
+            phrase[i] = words[wordIndex][i];
+            currentLength++;
           }
         }
-        lcd.setCursor(j, line);
-        for (int k = j; k < 16; k++)  {
-          lcd.print(" ");
+        int line = 0;
+        lcd.clear();
+        for (int i = 0; i < currentLength; i++)  {
+          if (i == 15 && phrase[i+1] != ' ' && line == 0) {
+            int j = 0;
+            for (int k = 15; k > 0; k--)  {
+              if (phrase[k] == ' ')  {
+                j = k;
+                break;
+              }
+            }
+            lcd.setCursor(j, line);
+            for (int k = j; k < 16; k++)  {
+              lcd.print(" ");
+            }
+            i = j;
+            line = 1;
+            lcd.setCursor(0, line);
+          } else {
+            lcd.print(phrase[i]);
+          }
         }
-        i = j;
-        line = 1;
-        lcd.setCursor(0, line);
-      } else {
-        lcd.print(phrase[i]);
+        prevWordIndex = wordIndex;
+        //Serial.println(phrase);
       }
-    }
-    prevWordIndex = wordIndex;
-    //Serial.println(phrase);
-  }
-  // read the state of the pushbutton value:
-  buttonState = digitalRead(buttonPin);
-
-  // check if the pushbutton is pressed.
-  // if it is, the buttonState is HIGH:
-  if (buttonState == HIGH && !registeredPress) {
-    // turn LED on:
-    wordIndex++;
-    registeredPress = true;
-  } else {
-    registeredPress = false;
-  }
-  if (wordIndex == sizeof(words) / sizeof(char[32]) || phrase[0] == '\0')  {
-    prevWordIndex = -1;
-    wordIndex = 0;
-    reread();
-  }
+      buttonState = digitalRead(buttonPin);
+      if (buttonState == HIGH && !registeredPress) {
+        // turn LED on:
+        wordIndex++;
+        registeredPress = true;
+      } else {
+        registeredPress = false;
+      }
+      if (wordIndex == sizeof(words) / sizeof(char[32]) || phrase[0] == '\0')  {
+        prevWordIndex = -1;
+        wordIndex = 0;
+        reread();
+      }
+    case 2:
+      buttonState = digitalRead(buttonPin);
+      lcd.clear();
+      lcd.print("Round over");
+      lcd.setCursor(0,1);
+      lcd.print("Who won?");
+      if (buttonState == HIGH) {
+        state = 1;
+        roundStart = millis();
+      }
+    
+  }/*
+  lcd.clear();
+  lcd.print(abs(millis() - roundStart));*/
   delay(125);
 
 }
