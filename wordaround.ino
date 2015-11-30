@@ -10,8 +10,10 @@ char phrase[32];
 int buttonPin = 9;
 int buttonState = 0;
 boolean registeredPress = false;
+boolean pressed = false;
 LiquidCrystal lcd(6, 7, 5, 8, 3, 2);
 int state = 0; // 0 = start, 1 = playing, 2 = select team, 3 = done
+int prevState = -1;
 long int roundStart = 0;
 
 void setup() {
@@ -34,98 +36,106 @@ void setup() {
     // don't do anything more:
     return;
   }
+  reread();
   lcd.clear();
   lcd.print("SD card");
   lcd.setCursor(0,1);
   lcd.print("initialized");
   roundStart = millis();
-  reread();
 }
 void loop() {
-  switch (state) {
-    case 0:
-      buttonState = digitalRead(buttonPin);
-      lcd.clear();
-      lcd.print("Press a button");
-      lcd.setCursor(0,1);
-      lcd.print("to start");
-      if (buttonState == HIGH) {
-        state = 1;
-        roundStart = millis();
-      }
-    case 1:
-      if (abs(millis() - roundStart) > 1000*10) {
-        state = 2;
-      }
-      if (wordIndex != prevWordIndex) { 
-        int currentLength = 0;
+  buttonState = digitalRead(buttonPin);
+  pressed = false;
+  if (buttonState == HIGH && !registeredPress) {
+    registeredPress = true;
+    pressed = true;
+  } else if (buttonState == LOW) {
+    registeredPress = false;
+  }
+  if (state != prevState || pressed || state == 1) {
+    prevState = state;
+    switch (state) {
+      case 0: // start
         lcd.clear();
-        for (int i = 0; i < sizeof(phrase) / sizeof(char); i++) {
-          phrase[i] = '\0';
-          lcd.print(' ');
+        lcd.print("Press a button");
+        lcd.setCursor(0,1);
+        lcd.print("to start");
+        if (pressed) {
+          state = 1;
+          roundStart = millis();
         }
-        for (int i = 0; i < sizeof(phrase) / sizeof(char); i++) {
-          if (words[wordIndex][i] == '\0' || words[wordIndex][i] == '\r') {
-            break;
-          } else {
-            phrase[i] = words[wordIndex][i];
-            currentLength++;
+        break;
+      case 1: // playing
+        if (state == 1 && abs(millis() - roundStart) > 1000*20) {
+          state = 2;
+        }
+        if (wordIndex != prevWordIndex) { 
+          int currentLength = 0;
+          lcd.clear();
+          for (int i = 0; i < sizeof(phrase) / sizeof(char); i++) {
+            phrase[i] = '\0';
+            lcd.print(' ');
           }
-        }
-        int line = 0;
-        lcd.clear();
-        for (int i = 0; i < currentLength; i++)  {
-          if (i == 15 && phrase[i+1] != ' ' && line == 0) {
-            int j = 0;
-            for (int k = 15; k > 0; k--)  {
-              if (phrase[k] == ' ')  {
-                j = k;
-                break;
+          for (int i = 0; i < sizeof(phrase) / sizeof(char); i++) {
+            if (words[wordIndex][i] == '\0' || words[wordIndex][i] == '\r') {
+              break;
+            } else {
+              phrase[i] = words[wordIndex][i];
+              currentLength++;
+            }
+          }
+          int line = 0;
+          lcd.clear();
+          for (int i = 0; i < currentLength; i++)  {
+            if (i == 15 && phrase[i+1] != ' ' && line == 0) {
+              int j = 0;
+              for (int k = 15; k > 0; k--)  {
+                if (phrase[k] == ' ')  {
+                  j = k;
+                  break;
+                }
               }
+              lcd.setCursor(j, line);
+              for (int k = j; k < 16; k++)  {
+                lcd.print(" ");
+              }
+              i = j;
+              line = 1;
+              lcd.setCursor(0, line);
+            } else {
+              lcd.print(phrase[i]);
             }
-            lcd.setCursor(j, line);
-            for (int k = j; k < 16; k++)  {
-              lcd.print(" ");
-            }
-            i = j;
-            line = 1;
-            lcd.setCursor(0, line);
-          } else {
-            lcd.print(phrase[i]);
           }
+          prevWordIndex = wordIndex;
         }
-        prevWordIndex = wordIndex;
-        //Serial.println(phrase);
-      }
-      buttonState = digitalRead(buttonPin);
-      if (buttonState == HIGH && !registeredPress) {
-        // turn LED on:
-        wordIndex++;
-        registeredPress = true;
-      } else {
-        registeredPress = false;
-      }
-      if (wordIndex == sizeof(words) / sizeof(char[32]) || phrase[0] == '\0')  {
-        prevWordIndex = -1;
-        wordIndex = 0;
-        reread();
-      }
-    case 2:
-      buttonState = digitalRead(buttonPin);
-      lcd.clear();
-      lcd.print("Round over");
-      lcd.setCursor(0,1);
-      lcd.print("Who won?");
-      if (buttonState == HIGH) {
-        state = 1;
-        roundStart = millis();
-      }
-    
-  }/*
-  lcd.clear();
-  lcd.print(abs(millis() - roundStart));*/
-  delay(125);
-
+        if (pressed) {
+          // turn LED on:
+          wordIndex++;
+        }
+        if (wordIndex == sizeof(words) / sizeof(char[32]) || phrase[0] == '\0')  {
+          prevWordIndex = -1;
+          wordIndex = 0;
+          reread();
+        }
+        break;
+      case 2: // select team
+        lcd.clear();
+        lcd.print("Round over.");
+        lcd.setCursor(0,1);
+        lcd.print("Who won?");
+        if (pressed) {
+          state = 1;
+          roundStart = millis();
+        }
+        break;
+      default:
+        // nothing here
+      break;
+    }
+  }
+  /*lcd.clear();
+  lcd.print(state);*/
+  delay(5);
 }
 
 void reread() {
