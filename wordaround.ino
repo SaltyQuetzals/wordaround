@@ -1,26 +1,45 @@
 #include <LiquidCrystal.h>
 #include <SPI.h>
 #include <SD.h>
+#include "pitches.h"
 
-const int chipSelect = 4;
+// Constants
+const int pointsToWin = 10;
+const int roundLength = 10; // in seconds
+
+LiquidCrystal lcd(6, 7, 5, 8, 3, 2);
 char words[5][32];
 int wordIndex = 0;
 int prevWordIndex = -1;
 char phrase[32];
+
 int buttonAstate, buttonBstate, buttonCstate;
 boolean registeredPress = false;
 boolean pressed = false;
-LiquidCrystal lcd(6, 7, 5, 8, 3, 2);
+boolean buttonA, buttonB, buttonC;
+boolean gaveTeamPoint = false;
+int pointTotal = 0;
+
 int state = 0; // 0 = start, 1 = playing, 2 = select team, 3 = done
 int prevState = -1;
-long int roundStart = 0;
+int roundStart = 0;
 int Apoints, Bpoints;
-int pointsToWin = 10;
+
+byte smiley[8] = {
+  B00000,
+  B10001,
+  B00000,
+  B00000,
+  B10001,
+  B01110,
+  B00000,
+};
 
 void setup() {
   randomSeed(analogRead(10)); // pin 10 is free
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
+  lcd.createChar(0, smiley);
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
   while (!Serial) {
@@ -31,7 +50,7 @@ void setup() {
   lcd.setCursor(0,1);
   lcd.print("SD card");
   // see if the card is present and can be initialized:
-  if (!SD.begin(chipSelect)) {
+  if (!SD.begin(4)) { // SD on pin 4
     lcd.clear();
     lcd.print("No or invalid SD");
     // don't do anything more:
@@ -45,38 +64,74 @@ void setup() {
   roundStart = millis();
   Apoints = Bpoints = 0;
 }
+
 void loop() {
-  buttonAstate = analogRead(3) > 0 ? HIGH : LOW; // value are either 0 or 1023
-  buttonBstate = analogRead(4) > 0 ? HIGH : LOW; // so map 0 to LOW
-  buttonCstate = analogRead(5) > 0 ? HIGH : LOW; // and anything above to HIGH
-  pressed = false;
-  if ((buttonAstate == HIGH || buttonBstate == HIGH) && !registeredPress) {
+  buttonA = buttonB = buttonC = pressed = false;
+  buttonA = analogRead(3) > 500 ? true : false; // value are either 0 or 1023
+  buttonB = analogRead(4) > 500 ? true : false; // so map 1023 to HIGH
+  buttonC = analogRead(5) > 500 ? true : false; // and anything below to LOW
+  /*Serial.print(analogRead(3));
+  Serial.print(" ");
+  Serial.print(analogRead(4));
+  Serial.print(" ");
+  Serial.print(analogRead(5));
+  Serial.print(" ");
+  Serial.print(buttonA);
+  Serial.print(" ");
+  Serial.print(buttonB);
+  Serial.print(" ");
+  Serial.print(buttonC);
+  Serial.println();*/
+  if ((buttonA || buttonB || buttonC) && !registeredPress) {
     registeredPress = true;
     pressed = true;
-    tone(10, 494, 200);
-    delay(100);
-    noTone(10);
-  } else if (buttonAstate == LOW && buttonBstate == LOW) {
+  } else if (!(buttonA || buttonB || buttonC)) {
     registeredPress = false;
   }
-  if (state != prevState || pressed || state == 1) {
+  /*Serial.print(millis());
+  Serial.print(" - ");
+  Serial.print(roundStart);
+  Serial.print(" = ");
+  Serial.println(millis() - roundStart);*/
+  if (state != prevState || pressed || state == 1 || state == 2) {
     prevState = state;
     switch (state) {
       case 0: // start
         lcd.clear();
-        lcd.print("Press a button");
+        lcd.print("Press any button");
         lcd.setCursor(0,1);
-        lcd.print("to start");
+        lcd.print("to start. ");
+        //lcd.write(byte(0));
+        lcd.write(0b01111110);
         if (pressed) {
           state = 1;
           roundStart = millis();
         }
         break;
       case 1: // playing
-        if (state == 1 && abs(millis() - roundStart) > 1000*20) {
+        if ((millis() - roundStart)/1000 > roundLength) {
           state = 2;
+          playNote(NOTE_FS5, 1000);
+        } else {
+          /* Ticks:
+          until 50%: every second
+          until 30%: every 500ms
+          until 10%: every 100ms
+          5 seconds left: every 50ms
+          */
+          int elapsed = (millis() - roundStart)/10, // round off to 10s
+              elapsedP = (millis() - roundStart)/10/roundLength; // as percentage
+          if (elapsedP < 50 && elapsed % 100 == 0) {
+            playNote(NOTE_C4, 20);
+          } else if (elapsedP >= 50 && elapsedP < 70 && elapsed % 50 == 0) {
+            playNote(NOTE_C4, 20);
+          } else if (elapsedP >= 70 && elapsedP < 90 && elapsed % 20 == 0) {
+            playNote(NOTE_C4, 20);
+          } else if (elapsedP >= 90 && elapsed % 10 == 0) {
+            playNote(NOTE_C4, 20);
+          }
         }
-        if (wordIndex != prevWordIndex) { 
+        if (wordIndex != prevWordIndex) {
           int currentLength = 0;
           lcd.clear();
           for (int i = 0; i < sizeof(phrase) / sizeof(char); i++) {
@@ -115,8 +170,8 @@ void loop() {
           }
           prevWordIndex = wordIndex;
         }
-        if (pressed) {
-          // turn LED on:
+        if (pressed && buttonC) {
+          // go to the next word:
           wordIndex++;
         }
         if (wordIndex == sizeof(words) / sizeof(char[32]) || phrase[0] == '\0')  {
@@ -126,35 +181,69 @@ void loop() {
         }
         break;
       case 2: // select team
-        lcd.clear();
-        lcd.print("Round over.");
-        lcd.setCursor(0,1);
-        lcd.print("Who won?");
-        if (pressed) {
-          if (buttonAstate == HIGH) {
-            Apoints++;
-          } else if (buttonBstate == HIGH) {
-            Bpoints++;
-          }
-          if (Apoints > pointsToWin) {
-            
-          } else if (Bpoints > pointsToWin) {
-            
-          } else { // another round
-            state = 1;
-            roundStart = millis();
+        if (true) {
+          if (gaveTeamPoint) {
+            if (buttonC) {
+              prevWordIndex = -1;
+              roundStart = millis();
+              gaveTeamPoint = false;
+              state = 1; // another round
+            }
+            lcd.clear();
+            lcd.write(0b01111111);
+            lcd.print("A:");
+            lcd.print(Apoints);
+            lcd.print(" vs. B:");
+            lcd.print(Bpoints);
+            lcd.write(0b01111110);
+            lcd.setCursor(0,1);
+            lcd.print("Round start!");
+          } else {
+            if (buttonA || buttonB) {
+              if (buttonA) {
+                Apoints++;
+              } else if (buttonB) {
+                Bpoints++;
+              }
+              pointTotal = Apoints + Bpoints;
+              gaveTeamPoint = true;
+              if (Apoints > pointsToWin || Bpoints > pointsToWin) {
+                state = 3; // someone won
+              }
+            } 
+            lcd.clear();
+            lcd.print("Round over.");
+            lcd.setCursor(0,1);
+            lcd.write(0b01111111);
+            lcd.print("A:");
+            lcd.print(Apoints);
+            lcd.print(" vs. B:");
+            lcd.print(Bpoints);
+            lcd.write(0b01111110);
           }
         }
         break;
-      case 3: // someone one!
-        
+      case 3: // someone won!
+        lcd.clear();
+        lcd.print("Game over.");
+        lcd.setCursor(0,1);
+        if (Apoints > pointsToWin) {
+          lcd.print("Team A won!");
+        } else if (Bpoints > pointsToWin) {
+          lcd.print("Team B won!");
+        }
+        // play win sound
+        if (buttonC) { // reset game
+          roundStart = millis();
+          Apoints = Bpoints = 0;
+          pointTotal = 0;
+          state = 1;
+        }
       default:
         // nothing here
       break;
     }
   }
-  /*lcd.clear();
-  lcd.print(state);*/
   delay(5);
 }
 
@@ -172,14 +261,15 @@ void reread() {
     }
     int i = 0;
     int j = 0;
-    dataFile.seek(
-      (int)
-      random(
-        dataFile.size()-(
-          35*sizeof(words) / sizeof(char[32])
-        )
+    int filePosition = (int)random(
+      dataFile.size()-(
+        35*sizeof(words) / sizeof(char[32])
       )
     );
+    dataFile.seek(filePosition);
+    while (dataFile.available() && dataFile.peek() != '\n' && filePosition > 0) {
+      dataFile.seek(filePosition--);
+    }
     while (dataFile.available() && i < sizeof(words) / sizeof(char[32])) {
       char c = dataFile.read();
       if (c != '\r') {
@@ -217,3 +307,10 @@ void reread() {
     reread();
   }
 }
+
+void playNote(int note, int len) {
+  tone(10, note, len);
+  //delay(len);
+  //noTone(10);
+}
+
