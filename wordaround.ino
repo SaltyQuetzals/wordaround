@@ -7,14 +7,15 @@ char words[5][32];
 int wordIndex = 0;
 int prevWordIndex = -1;
 char phrase[32];
-int buttonPin = 9;
-int buttonState = 0;
+int buttonAstate, buttonBstate, buttonCstate;
 boolean registeredPress = false;
 boolean pressed = false;
 LiquidCrystal lcd(6, 7, 5, 8, 3, 2);
 int state = 0; // 0 = start, 1 = playing, 2 = select team, 3 = done
 int prevState = -1;
 long int roundStart = 0;
+int Apoints, Bpoints;
+int pointsToWin = 10;
 
 void setup() {
   randomSeed(analogRead(10)); // pin 10 is free
@@ -42,14 +43,20 @@ void setup() {
   lcd.setCursor(0,1);
   lcd.print("initialized");
   roundStart = millis();
+  Apoints = Bpoints = 0;
 }
 void loop() {
-  buttonState = digitalRead(buttonPin);
+  buttonAstate = analogRead(3) > 0 ? HIGH : LOW; // value are either 0 or 1023
+  buttonBstate = analogRead(4) > 0 ? HIGH : LOW; // so map 0 to LOW
+  buttonCstate = analogRead(5) > 0 ? HIGH : LOW; // and anything above to HIGH
   pressed = false;
-  if (buttonState == HIGH && !registeredPress) {
+  if ((buttonAstate == HIGH || buttonBstate == HIGH) && !registeredPress) {
     registeredPress = true;
     pressed = true;
-  } else if (buttonState == LOW) {
+    tone(10, 494, 200);
+    delay(100);
+    noTone(10);
+  } else if (buttonAstate == LOW && buttonBstate == LOW) {
     registeredPress = false;
   }
   if (state != prevState || pressed || state == 1) {
@@ -124,10 +131,23 @@ void loop() {
         lcd.setCursor(0,1);
         lcd.print("Who won?");
         if (pressed) {
-          state = 1;
-          roundStart = millis();
+          if (buttonAstate == HIGH) {
+            Apoints++;
+          } else if (buttonBstate == HIGH) {
+            Bpoints++;
+          }
+          if (Apoints > pointsToWin) {
+            
+          } else if (Bpoints > pointsToWin) {
+            
+          } else { // another round
+            state = 1;
+            roundStart = millis();
+          }
         }
         break;
+      case 3: // someone one!
+        
       default:
         // nothing here
       break;
@@ -182,7 +202,9 @@ void reread() {
     dataFile.close();
   } else {
     lcd.clear();
-    lcd.print("Failed to read words.txt");
+    lcd.print("Failed to read");
+    lcd.setCursor(0,1);
+    lcd.print("words.txt");
   }
   /*int n = sizeof(words) / sizeof(char[32]);
   for (int i = 0; i < n - 1; i++) {
