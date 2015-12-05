@@ -36,8 +36,37 @@ byte smiley[8] = {
   B01110,
   B00000,
 };
+unsigned short notes[] = {NOTE_D5,NOTE_D5,0,0,
+                          NOTE_A5,0,0,NOTE_GS5,
+                          0,NOTE_G5,0,NOTE_F5,
+                          0,NOTE_D5,NOTE_F5,NOTE_G5,
+                          
+                          NOTE_C5,NOTE_C5,0,0,
+                          NOTE_A5,0,0,NOTE_GS5,
+                          0,NOTE_G5,0,NOTE_F5,
+                          0,NOTE_D5,NOTE_F5,NOTE_G5,
+                          
+                          NOTE_B4,NOTE_B4,0,0,
+                          NOTE_A5,0,0,NOTE_GS5,
+                          0,NOTE_G5,0,NOTE_F5,
+                          0,NOTE_D5,NOTE_F5,NOTE_G5,
+                          
+                          NOTE_AS4,NOTE_AS4,0,0,
+                          NOTE_A5,0,0,NOTE_GS5,
+                          0,NOTE_G5,0,NOTE_F5,
+                          0,NOTE_D5,NOTE_F5,NOTE_G5};
+short megalovania = -1;
+byte t = 0;
 
 void setup() {
+  // voodoo timer (http://letsmakerobots.com/node/28278) for ticker and music
+  noInterrupts(); // disable all interrupts
+  TCCR1A = TCCR1B = TCNT1 = 0;
+  OCR1A = 16000000/256/8; // 8Hz
+  TCCR1B |= (1 << WGM12); // CTC mode
+  TCCR1B |= (1 << CS12); // 256 prescaler 
+  TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
+  interrupts(); // enable all interrupts
   randomSeed(analogRead(10)); // pin 10 is free, so see using that
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
@@ -65,34 +94,47 @@ void setup() {
   Apoints = Bpoints = 0;
 }
 
+ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz
+  if (state == 1) {
+    /* Ticks:
+    until 50%: every second
+    until 30%: every 500ms
+    until 10%: every 100ms
+    5 seconds left: every 50ms
+    */
+    if (megalovania == -1) {
+      int elapsed = (millis() - roundStart)/10, // round off to 10s
+          elapsedP = (millis() - roundStart)/10/roundLength; // as percentage
+      if (elapsedP < 50 && t % 8 == 0) {
+        playNote(NOTE_C4, 10);
+      } else if (elapsedP >= 50 && elapsedP < 70 && t % 4 == 0) {
+        playNote(NOTE_C4, 10);
+      } else if (elapsedP >= 70 && elapsedP < 90 && t % 2 == 0) {
+        playNote(NOTE_C4, 10);
+      } else if (elapsedP >= 90 && t % 1 == 0) {
+        playNote(NOTE_C4, 10);
+      }
+    } else {
+      if (notes[megalovania] > 0) playNote(notes[megalovania], 50);
+      megalovania++;
+      if (megalovania == sizeof(notes) / sizeof(short)) megalovania = 0;
+    }
+    t++;
+    if (t == 8) t = 0;
+  }
+}
+
 void loop() {
   buttonA = buttonB = buttonC = pressed = false;
   buttonA = analogRead(3) > 500 ? true : false; // value are either 0 or 1023
   buttonB = analogRead(4) > 500 ? true : false; // so map 1023 to HIGH
   buttonC = analogRead(5) > 500 ? true : false; // and anything below to LOW
-  /*Serial.print(analogRead(3));
-  Serial.print(" ");
-  Serial.print(analogRead(4));
-  Serial.print(" ");
-  Serial.print(analogRead(5));
-  Serial.print(" ");
-  Serial.print(buttonA);
-  Serial.print(" ");
-  Serial.print(buttonB);
-  Serial.print(" ");
-  Serial.print(buttonC);
-  Serial.println();*/
   if ((buttonA || buttonB || buttonC) && !registeredPress) {
     registeredPress = true;
     pressed = true;
   } else if (!(buttonA || buttonB || buttonC)) {
     registeredPress = false;
   }
-  /*Serial.print(millis());
-  Serial.print(" - ");
-  Serial.print(roundStart);
-  Serial.print(" = ");
-  Serial.println(millis() - roundStart);*/
   if (state != prevState || pressed || state == 1 || redraws > 0) {
     prevState = state;
     if (redraws > 0) redraws--;
@@ -113,6 +155,8 @@ void loop() {
           roundStart = millis();
           Apoints = Bpoints = pointTotal = 0;
           gaveTeamPoint = false;
+          megalovania = -1;
+          t = 0;
         } else if (buttonA && buttonB && pressed) {
           state = 4;
         }
@@ -122,23 +166,7 @@ void loop() {
           state = 2; // time's out!
           playNote(NOTE_C2, 1000);
         } else {
-          /* Ticks:
-          until 50%: every second
-          until 30%: every 500ms
-          until 10%: every 100ms
-          5 seconds left: every 50ms
-          */
-          int elapsed = (millis() - roundStart)/10, // round off to 10s
-              elapsedP = (millis() - roundStart)/10/roundLength; // as percentage
-          if (elapsedP < 50 && elapsed % 100 == 0) {
-            playNote(NOTE_C4, 10);
-          } else if (elapsedP >= 50 && elapsedP < 70 && elapsed % 50 == 0) {
-            playNote(NOTE_C4, 10);
-          } else if (elapsedP >= 70 && elapsedP < 90 && elapsed % 20 == 0) {
-            playNote(NOTE_C4, 10);
-          } else if (elapsedP >= 90 && elapsed % 10 == 0) {
-            playNote(NOTE_C4, 10);
-          }
+          
         }
         if (wordIndex != prevWordIndex) {
           int currentLength = 0;
@@ -219,6 +247,9 @@ void loop() {
             gaveTeamPoint = true;
             if (Apoints >= pointsToWin || Bpoints >= pointsToWin) {
               state = 3; // someone won
+            }
+            if (megalovania == -1 && pointTotal >= pointsToWin-2) {
+              megalovania = 0;
             }
             redraws++;
           } 
@@ -331,4 +362,3 @@ void playNote(int note, int len) {
   //delay(len);
   //noTone(10);
 }
-
