@@ -3,6 +3,7 @@
 #include <SD.h>
 #include "pitches.h"
 
+// Comments
 // Constants
 const byte pointsToWin = 10;
 const byte roundLength = 10; // in seconds
