@@ -4,26 +4,27 @@
 #include "pitches.h"
 
 // Constants
-const int pointsToWin = 10;
-const int roundLength = 10; // in seconds
+unsigned const int pointsToWin = 10;
+unsigned const int roundLength = 10; // in seconds
 
 LiquidCrystal lcd(6, 7, 5, 8, 3, 2);
 char words[5][32];
-int wordIndex = 0;
+unsigned int wordIndex = 0;
 int prevWordIndex = -1;
 char phrase[32];
 
-int buttonAstate, buttonBstate, buttonCstate;
 boolean registeredPress = false;
 boolean pressed = false;
 boolean buttonA, buttonB, buttonC;
 boolean gaveTeamPoint = false;
-int pointTotal = 0;
+unsigned int pointTotal = 0;
 
 int state = 0; // 0 = start, 1 = playing, 2 = select team, 3 = done
 int prevState = -1;
-int roundStart = 0;
-int Apoints, Bpoints;
+unsigned long roundStart = 0;
+unsigned int Apoints, Bpoints;
+unsigned int redraws = 0;
+unsigned int filePosition;
 
 byte smiley[8] = {
   B00000,
@@ -52,15 +53,15 @@ void setup() {
   // see if the card is present and can be initialized:
   if (!SD.begin(4)) { // SD on pin 4
     lcd.clear();
-    lcd.print("No or invalid SD");
+    lcd.print("No or invalid");
+    lcd.setCursor(0,1);
+    lcd.print("SD on digital 4");
     // don't do anything more:
     return;
   }
+  Serial.println("Init log");
   reread();
-  lcd.clear();
-  lcd.print("SD card");
-  lcd.setCursor(0,1);
-  lcd.print("initialized");
+  Serial.println("done");
   roundStart = millis();
   Apoints = Bpoints = 0;
 }
@@ -93,8 +94,10 @@ void loop() {
   Serial.print(roundStart);
   Serial.print(" = ");
   Serial.println(millis() - roundStart);*/
-  if (state != prevState || pressed || state == 1 || state == 2) {
+  if (state != prevState || pressed || state == 1 || redraws > 0) {
     prevState = state;
+    if (redraws > 0) redraws--;
+    Serial.println(redraws);
     switch (state) {
       case 0: // start
         lcd.clear();
@@ -181,46 +184,46 @@ void loop() {
         }
         break;
       case 2: // select team
-        if (true) {
-          if (gaveTeamPoint) {
-            if (buttonC) {
-              prevWordIndex = -1;
-              roundStart = millis();
-              gaveTeamPoint = false;
-              state = 1; // another round
-            }
-            lcd.clear();
-            lcd.write(0b01111111);
-            lcd.print("A:");
-            lcd.print(Apoints);
-            lcd.print(" vs. B:");
-            lcd.print(Bpoints);
-            lcd.write(0b01111110);
-            lcd.setCursor(0,1);
-            lcd.print("Round start!");
-          } else {
-            if (buttonA || buttonB) {
-              if (buttonA) {
-                Apoints++;
-              } else if (buttonB) {
-                Bpoints++;
-              }
-              pointTotal = Apoints + Bpoints;
-              gaveTeamPoint = true;
-              if (Apoints > pointsToWin || Bpoints > pointsToWin) {
-                state = 3; // someone won
-              }
-            } 
-            lcd.clear();
-            lcd.print("Round over.");
-            lcd.setCursor(0,1);
-            lcd.write(0b01111111);
-            lcd.print("A:");
-            lcd.print(Apoints);
-            lcd.print(" vs. B:");
-            lcd.print(Bpoints);
-            lcd.write(0b01111110);
+        if (gaveTeamPoint) {
+          if (buttonC) {
+            prevWordIndex = -1;
+            roundStart = millis();
+            gaveTeamPoint = false;
+            state = 1; // another round
+            redraws+=2;
           }
+          lcd.clear();
+          lcd.write(0b01111111);
+          lcd.print("A:");
+          lcd.print(Apoints);
+          lcd.print(" vs. B:");
+          lcd.print(Bpoints);
+          lcd.write(0b01111110);
+          lcd.setCursor(0,1);
+          lcd.print("Press next!");
+        } else {
+          if (buttonA || buttonB) {
+            if (buttonA) {
+              Apoints++;
+            } else if (buttonB) {
+              Bpoints++;
+            }
+            pointTotal = Apoints + Bpoints;
+            gaveTeamPoint = true;
+            if (Apoints > pointsToWin || Bpoints > pointsToWin) {
+              state = 3; // someone won
+            }
+            redraws+=2;
+          } 
+          lcd.clear();
+          lcd.print("Round over.");
+          lcd.setCursor(0,1);
+          lcd.write(0b01111111);
+          lcd.print("A:");
+          lcd.print(Apoints);
+          lcd.print(" vs. B:");
+          lcd.print(Bpoints);
+          lcd.write(0b01111110);
         }
         break;
       case 3: // someone won!
@@ -259,31 +262,25 @@ void reread() {
         words[i][j] = '\0';
       }
     }
-    int i = 0;
-    int j = 0;
-    int filePosition = (int)random(
-      dataFile.size()-(
-        35*sizeof(words) / sizeof(char[32])
-      )
-    );
-    dataFile.seek(filePosition);
-    while (dataFile.available() && dataFile.peek() != '\n' && filePosition > 0) {
-      dataFile.seek(filePosition--);
-    }
-    while (dataFile.available() && i < sizeof(words) / sizeof(char[32])) {
-      char c = dataFile.read();
-      if (c != '\r') {
-        if (!hasStarted) {
-          if (c == '\n') {
-            hasStarted = true;
-          }
-        } else {
-          if (c != '\n') {
+    char c;
+    for (int i = 0; i < sizeof(words) / sizeof(char[32]); i++) {
+      filePosition = (int)random(
+        dataFile.size()-(
+          35*sizeof(words) / sizeof(char[32])
+        )
+      );
+      dataFile.seek(filePosition);
+      while (dataFile.available() && dataFile.peek() != '\n' && filePosition > 0) {
+        dataFile.seek(filePosition--);
+      }
+      for (int j = 0; j < 32; j++) {
+        if (dataFile.available()) {
+          c = dataFile.read();
+          if (c != '\n' && c != '\r') {
             words[i][j] = c;
-            j++;
+            Serial.print(c);
           } else {
-            i++;
-            j = 0;
+            Serial.print('\n');
           }
         }
       }
@@ -296,13 +293,7 @@ void reread() {
     lcd.setCursor(0,1);
     lcd.print("words.txt");
   }
-  /*int n = sizeof(words) / sizeof(char[32]);
-  for (int i = 0; i < n - 1; i++) {
-    int j = random(1, n - i);
-    char* t = words[i];
-    words[i] = words[j];
-    words[j] = t;
-  }*/
+  // randomize the words... or not
   if (!hasStarted) {
     reread();
   }
