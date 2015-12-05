@@ -3,7 +3,6 @@
 #include <SD.h>
 #include "pitches.h"
 
-// Comments
 // Constants
 const byte pointsToWin = 10;
 const byte roundLength = 10; // in seconds
@@ -218,7 +217,7 @@ void loop() {
             }
             pointTotal = Apoints + Bpoints;
             gaveTeamPoint = true;
-            if (Apoints > pointsToWin-1 || Bpoints > pointsToWin-1) {
+            if (Apoints >= pointsToWin || Bpoints >= pointsToWin) {
               state = 3; // someone won
             }
             redraws++;
