@@ -36,22 +36,22 @@ byte smiley[8] = {
   B01110,
   B00000,
 };
-unsigned short notes[] = {NOTE_D5,NOTE_D5,0,0,
+unsigned short notes[] = {NOTE_D5,NOTE_D5,NOTE_D6,0,
                           NOTE_A5,0,0,NOTE_GS5,
                           0,NOTE_G5,0,NOTE_F5,
                           0,NOTE_D5,NOTE_F5,NOTE_G5,
                           
-                          NOTE_C5,NOTE_C5,0,0,
+                          NOTE_C5,NOTE_C5,NOTE_D6,0,
                           NOTE_A5,0,0,NOTE_GS5,
                           0,NOTE_G5,0,NOTE_F5,
                           0,NOTE_D5,NOTE_F5,NOTE_G5,
                           
-                          NOTE_B4,NOTE_B4,0,0,
+                          NOTE_B4,NOTE_B4,NOTE_D6,0,
                           NOTE_A5,0,0,NOTE_GS5,
                           0,NOTE_G5,0,NOTE_F5,
                           0,NOTE_D5,NOTE_F5,NOTE_G5,
                           
-                          NOTE_AS4,NOTE_AS4,0,0,
+                          NOTE_AS4,NOTE_AS4,NOTE_D6,0,
                           NOTE_A5,0,0,NOTE_GS5,
                           0,NOTE_G5,0,NOTE_F5,
                           0,NOTE_D5,NOTE_F5,NOTE_G5};
