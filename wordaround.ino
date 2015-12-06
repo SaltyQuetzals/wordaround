@@ -3,12 +3,14 @@
 #include <SD.h>
 #include "pitches.h"
 
-// Constants
+// Configurable
 const byte pointsToWin = 10;
 const byte roundLength = 10; // in seconds
+const byte preloadWords = 5; // number of words to load into memory
 
+// Don't change below
 LiquidCrystal lcd(6, 7, 5, 8, 3, 2);
-char words[5][32];
+char words[preloadWords][32];
 unsigned short wordIndex = 0;
 short prevWordIndex = -1;
 char phrase[32];
@@ -19,7 +21,7 @@ boolean buttonA, buttonB, buttonC;
 boolean gaveTeamPoint = false;
 byte pointTotal = 0;
 
-short state = 0; // 0 = start, 1 = playing, 2 = select team, 3 = done
+short state = 0; // 0 = welcome, 1 = playing, 2 = select team, 3 = done
 short prevState = -1;
 unsigned long roundStart = 0;
 byte Apoints, Bpoints;
@@ -36,6 +38,7 @@ byte smiley[8] = {
   B01110,
   B00000,
 };
+// mission critical:
 unsigned short notes[] = {NOTE_D5,NOTE_D5,NOTE_D6,0,
                           NOTE_A5,0,0,NOTE_GS5,
                           0,NOTE_G5,0,NOTE_F5,
@@ -67,7 +70,7 @@ void setup() {
   TCCR1B |= (1 << CS12); // 256 prescaler 
   TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
   interrupts(); // enable all interrupts
-  randomSeed(analogRead(10)); // pin 10 is free, so see using that
+  randomSeed(analogRead(10)); // pin 10 is free, so seed random using that
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
   lcd.createChar(0, smiley);
@@ -89,66 +92,33 @@ void setup() {
     // don't do anything more:
     return;
   }
-  reread();
   roundStart = millis();
-  Apoints = Bpoints = 0;
-}
-
-ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz
-  if (state == 1) {
-    /* Ticks:
-    until 50%: every second
-    until 30%: every 500ms
-    until 10%: every 100ms
-    5 seconds left: every 50ms
-    */
-    if (megalovania == -1) {
-      int elapsed = (millis() - roundStart)/10, // round off to 10s
-          elapsedP = (millis() - roundStart)/10/roundLength; // as percentage
-      if (elapsedP < 50 && t % 8 == 0) {
-        playNote(NOTE_C4, 10);
-      } else if (elapsedP >= 50 && elapsedP < 70 && t % 4 == 0) {
-        playNote(NOTE_C4, 10);
-      } else if (elapsedP >= 70 && elapsedP < 90 && t % 2 == 0) {
-        playNote(NOTE_C4, 10);
-      } else if (elapsedP >= 90 && t % 1 == 0) {
-        playNote(NOTE_C4, 10);
-      }
-    } else {
-      if (notes[megalovania] > 0) playNote(notes[megalovania], 50);
-      megalovania++;
-      if (megalovania == sizeof(notes) / sizeof(short)) megalovania = 0;
-    }
-    t++;
-    if (t == 8) t = 0;
-  }
 }
 
 void loop() {
-  buttonA = buttonB = buttonC = pressed = false;
+  buttonA = buttonB = buttonC = pressed = false; // reset
   buttonA = analogRead(3) > 500 ? true : false; // value are either 0 or 1023
-  buttonB = analogRead(4) > 500 ? true : false; // so map 1023 to HIGH
+  buttonB = analogRead(4) > 500 ? true : false; // so map > 500 to HIGH
   buttonC = analogRead(5) > 500 ? true : false; // and anything below to LOW
   if ((buttonA || buttonB || buttonC) && !registeredPress) {
-    registeredPress = true;
+    registeredPress = true; // press and hold triggers only once
     pressed = true;
-  } else if (!(buttonA || buttonB || buttonC)) {
+  } else if (!(buttonA || buttonB || buttonC)) { // keyup
     registeredPress = false;
   }
-  if (state != prevState || pressed || state == 1 || redraws > 0) {
+  if (state != prevState || pressed || state == 1 || redraws > 0) { // avoid flashing LCD
     prevState = state;
     if (redraws > 0) redraws--;
-    //Serial.println(redraws);
     switch (state) {
-      case 0: // start
+      case 0: // welcome
         lcd.clear();
         lcd.print("WordAround v1b ");
-        lcd.write(byte(0));
+        lcd.write(byte(0)); // :)
         lcd.setCursor(0,1);
         lcd.print("Press ");
-        lcd.write(0b01111110);
+        lcd.write(0b01111110); // ->
         lcd.print(" button!");
-        if (buttonC && pressed) {
+        if (buttonC && pressed) { // reset for game
           prevWordIndex = -1;
           reread();
           state = 1;
@@ -158,25 +128,23 @@ void loop() {
           megalovania = -1;
           t = 0;
         } else if (buttonA && buttonB && pressed) {
-          state = 4;
+          state = 4; // :^)
         }
         break;
       case 1: // playing
         if ((millis() - roundStart)/1000 > roundLength) {
           state = 2; // time's out!
           playNote(NOTE_C2, 1000);
-        } else {
-          
         }
-        if (wordIndex != prevWordIndex) {
+        if (wordIndex != prevWordIndex) { // avoid flickering
           int currentLength = 0;
           lcd.clear();
           for (int i = 0; i < sizeof(phrase) / sizeof(char); i++) {
-            phrase[i] = '\0';
-            lcd.print(' ');
+            phrase[i] = '\0'; // clear array
+            lcd.print(' '); // and clear LCD
           }
           for (int i = 0; i < sizeof(phrase) / sizeof(char); i++) {
-            if (words[wordIndex][i] == '\0' || words[wordIndex][i] == '\r') {
+            if (words[wordIndex][i] == '\0') {
               break;
             } else {
               phrase[i] = words[wordIndex][i];
@@ -212,33 +180,34 @@ void loop() {
           wordIndex++;
         }
         if (wordIndex == sizeof(words) / sizeof(char[32]) || phrase[0] == '\0')  {
+          // fetch new words if needed
           prevWordIndex = -1;
           wordIndex = 0;
           reread();
         }
         break;
-      case 2: // select team
+      case 2: // select team that won
         if (gaveTeamPoint) {
           if (buttonC) {
             prevWordIndex = -1;
             roundStart = millis();
             gaveTeamPoint = false;
-            state = 1; // another round
-            reread();
+            state = 1; // start another round
+            reread(); // new words
             redraws+=2;
           }
           lcd.clear();
-          lcd.write(0b01111111);
+          lcd.write(0b01111111); // <-
           lcd.print("A:");
           lcd.print(Apoints);
           lcd.print(" vs. B:");
           lcd.print(Bpoints);
-          lcd.write(0b01111110);
+          lcd.write(0b01111110); // ->
           lcd.setCursor(0,1);
           lcd.print("Press next!");
         } else {
           if (buttonA || buttonB) {
-            if (buttonA) {
+            if (buttonA) { // award points
               Apoints++;
             } else if (buttonB) {
               Bpoints++;
@@ -249,34 +218,34 @@ void loop() {
               state = 3; // someone won
             }
             if (megalovania == -1 && pointTotal >= pointsToWin-2) {
-              megalovania = 0;
+              megalovania = 0; // it's getting close!
             }
             redraws++;
           } 
           lcd.clear();
           lcd.print("Round over.");
           lcd.setCursor(0,1);
-          lcd.write(0b01111111);
+          lcd.write(0b01111111); // <-
           lcd.print("A:");
           lcd.print(Apoints);
           lcd.print(" vs. B:");
           lcd.print(Bpoints);
-          lcd.write(0b01111110);
+          lcd.write(0b01111110); // ->
         }
         break;
       case 3: // someone won!
         lcd.clear();
         lcd.print("Game over.");
         lcd.setCursor(0,1);
-        if (Apoints > pointsToWin-1) {
+        if (Apoints >= pointsToWin) {
           lcd.print("Team A won!");
-        } else if (Bpoints > pointsToWin-1) {
+        } else if (Bpoints >= pointsToWin) {
           lcd.print("Team B won!");
         }
-        if (buttonC) { // reset game
+        if (buttonC) { // restart game
           state = 0;
         } else {
-          // play win sound
+          // play win sound, change in future?
           for (int i = 0; i < 2; i++) {
             playNote(NOTE_C4, notelength);
             delay(notelength*3);
@@ -295,7 +264,7 @@ void loop() {
           delay(notelength);
         }
         break;
-      case 4: // easteregg
+      case 4: // easter egg, needs change
         lcd.clear();
         lcd.print("ey lamo");
         if (buttonC) {
@@ -310,9 +279,38 @@ void loop() {
   delay(5);
 }
 
+ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz
+  if (state == 1) {
+    /* Ticks:
+    until 50%: every second
+    until 30%: every 500ms
+    until 10%: every 100ms
+    5 seconds left: every 50ms
+    */
+    if (megalovania == -1) {
+      int elapsed = (millis() - roundStart)/10, // round off to 10s
+          elapsedP = (millis() - roundStart)/10/roundLength; // as percentage
+      if (elapsedP < 50 && t % 8 == 0) {
+        playNote(NOTE_C4, 10);
+      } else if (elapsedP >= 50 && elapsedP < 70 && t % 4 == 0) {
+        playNote(NOTE_C4, 10);
+      } else if (elapsedP >= 70 && elapsedP < 90 && t % 2 == 0) {
+        playNote(NOTE_C4, 10);
+      } else if (elapsedP >= 90 && t % 1 == 0) {
+        playNote(NOTE_C4, 10);
+      }
+    } else {
+      // if teams are close, give determination
+      if (notes[megalovania] > 0) playNote(notes[megalovania], 50);
+      megalovania++;
+      if (megalovania == sizeof(notes) / sizeof(short)) megalovania = 0;
+    }
+    t++;
+    if (t == 8) t = 0;
+  }
+}
+
 void reread() {
-  // open the file. note that only one file can be open at a time,
-  // so you have to close this one before opening another.
   File dataFile = SD.open("words.txt");
   // if the file is available, write to it:
   if (dataFile) {
@@ -320,15 +318,15 @@ void reread() {
       for (int j = 0; j < 32; j++) {
         words[i][j] = '\0';
       }
-      filePosition = random(dataFile.size());
+      filePosition = random(dataFile.size()); // random location
       char c;
       dataFile.seek(filePosition);
       while (dataFile.peek() != '\n' && filePosition > 0) {
-        dataFile.seek(filePosition--);
+        dataFile.seek(filePosition--); // find start of words
       }
       c = dataFile.read();
       while (dataFile.available() && (c == '\n' || c == '\r')) {
-        c = dataFile.read();
+        c = dataFile.read(); // to first actual letter
       }
       if (dataFile.position() == 2) {
         dataFile.seek(dataFile.position()-2);
@@ -339,7 +337,7 @@ void reread() {
       while (dataFile.available() && j < 32) {
         c = dataFile.read();
         if (c == '\n') {
-          j = 32;
+          j = 32; // stop reading
         } else {
           if (c != '\r') {
             words[i][j] = c;
@@ -348,6 +346,7 @@ void reread() {
         }
       }
     }
+    // only one file can be open at a time
     dataFile.close();
   } else {
     lcd.clear();
@@ -359,6 +358,4 @@ void reread() {
 
 void playNote(int note, int len) {
   tone(10, note, len);
-  //delay(len);
-  //noTone(10);
 }
