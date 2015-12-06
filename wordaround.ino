@@ -76,6 +76,12 @@ unsigned short victory[] = {NOTE_C5,NOTE_E5,NOTE_G5,NOTE_C6,
                             0,0,NOTE_AS6,NOTE_AS6,
                             NOTE_C7};
 short victoryProgress = -1;
+unsigned short startup[] = {NOTE_C5,NOTE_C5,0,NOTE_F5,
+                            NOTE_FS5,NOTE_F5,NOTE_G5};
+short startupProgress = -1;
+unsigned short roundover[] = {NOTE_E5,NOTE_E5,NOTE_D5,NOTE_D5,
+                              NOTE_D5,0,NOTE_D5,NOTE_D5};
+short roundoverProgress = -1;
 
 void setup() {
   // voodoo timer (http://letsmakerobots.com/node/28278) for ticker and music
@@ -113,6 +119,7 @@ void setup() {
     return;
   }
   roundStart = millis();
+  startupProgress = 0;
 }
 
 void loop() {
@@ -145,8 +152,7 @@ void loop() {
           roundStart = millis();
           Apoints = Bpoints = pointTotal = 0;
           gaveTeamPoint = false;
-          megalovania = -1;
-          victoryProgress = -1;
+          megalovania = victoryProgress = roundoverProgress = -1;
           t = 0;
         } else if (buttonA && buttonB && pressed) {
           state = 4; // :^)
@@ -155,7 +161,7 @@ void loop() {
       case 1: // playing
         if ((millis() - roundStart)/1000 > roundLength) {
           state = 2; // time's out!
-          playNote(NOTE_C2, 1000);
+          roundoverProgress = 0;
         }
         if (wordIndex != prevWordIndex) { // avoid flickering
           int currentLength = 0;
@@ -209,14 +215,6 @@ void loop() {
         break;
       case 2: // select team that won
         if (gaveTeamPoint) {
-          if (buttonC) {
-            prevWordIndex = -1;
-            roundStart = millis();
-            gaveTeamPoint = false;
-            state = 1; // start another round
-            reread(); // new words
-            redraws+=2;
-          }
           lcd.clear();
           lcd.write(0b01111111); // <-
           lcd.print("A:");
@@ -224,8 +222,19 @@ void loop() {
           lcd.print(" vs. B:");
           lcd.print(Bpoints);
           lcd.write(0b01111110); // ->
-          lcd.setCursor(0,1);
-          lcd.print("Press next!");
+          if (roundoverProgress == sizeof(roundover)/sizeof(short)+9) {
+            if (buttonC) {
+              prevWordIndex = -1;
+              roundStart = millis();
+              gaveTeamPoint = false;
+              state = 1; // start another round
+              reread(); // new words
+              roundoverProgress = -1;
+              redraws+=2;
+            }
+            lcd.setCursor(0,1);
+            lcd.print("Press next!");
+          }
         } else {
           if (buttonA || buttonB) {
             if (buttonA) { // award points
@@ -237,7 +246,6 @@ void loop() {
             gaveTeamPoint = true;
             if (Apoints >= pointsToWin || Bpoints >= pointsToWin) {
               state = 3; // someone won
-              victoryProgress = 0;
             }
             if (megalovania == -1 && Apoints >= pointsToWin-1 && Bpoints >= pointsToWin-1) {
               megalovania = 0; // it's getting close! is everybody determined enough?
@@ -266,11 +274,12 @@ void loop() {
         }
         if (buttonC) { // restart game
           state = 0;
-        } else {
+        } else if (victoryProgress == -1) {
+          victoryProgress = 0;
           delay(3000); // wait at least 3 seconds before continueing
-          lcd.print(' ');
-          lcd.write(0b01111110);
         }
+        lcd.print(' ');
+        lcd.write(0b01111110);
         break;
       case 4: // easter egg, needs change
         lcd.clear();
@@ -293,7 +302,11 @@ void loop() {
 }
 
 ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
-  if (state == 1) {
+  if (startupProgress > -1 && startupProgress < sizeof(startup) / sizeof(short)) {
+    // startup music
+    playNote(startup[startupProgress], 100);
+    startupProgress++;
+  } else if (state == 1) {
     /* Ticks:
     until 50%: every second
     until 30%: every 500ms
@@ -316,13 +329,23 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
       // if teams are close, give determination
       if (action[megalovania] > 0) playNote(action[megalovania], 50);
       megalovania++;
-      if (megalovania == sizeof(action) / sizeof(short)) megalovania = 0;
+      if (megalovania == sizeof(action)/sizeof(short)) megalovania = 0;
     }
   } else if (state == 3 && victoryProgress > -1 &&
-             victoryProgress < sizeof(victory) / sizeof(short)) {
+             victoryProgress < sizeof(victory)/sizeof(short)) {
     // victory music
     playNote(victory[victoryProgress], 50);
     victoryProgress++;
+  } else if (state == 2 && roundoverProgress > -1 &&
+             roundoverProgress < (sizeof(roundover)/sizeof(short)+9)) {
+    // round over music
+    if (roundoverProgress > 8) {
+      playNote(roundover[roundoverProgress-9], 50);
+    } else if (roundoverProgress == 0) {
+      playNote(NOTE_C4, 1000);
+    }
+    roundoverProgress++;
+    redraws++;
   }
   t++;
   if (t == 8) t = 0;
