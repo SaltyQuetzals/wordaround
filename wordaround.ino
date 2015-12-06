@@ -4,7 +4,7 @@
 #include "pitches.h"
 
 // Configurable
-const byte pointsToWin = 10;
+const byte pointsToWin = 3; // point to win a game
 const byte roundLength = 10; // in seconds
 const byte preloadWords = 5; // number of words to load into memory
 
@@ -38,28 +38,44 @@ byte smiley[8] = {
   B01110,
   B00000,
 };
+byte curvedbeta[8] = {16,16,10,13,9,9,22};
+byte f[8] = {3,4,4,14,4,4,24};
+byte g[8] = {31,31,4,31,31,14,17};
+byte a[8] = {14,10,14,10,10,0,31};
+
 // mission critical:
-unsigned short notes[] = {NOTE_D5,NOTE_D5,NOTE_D6,0,
-                          NOTE_A5,0,0,NOTE_GS5,
-                          0,NOTE_G5,0,NOTE_F5,
-                          0,NOTE_D5,NOTE_F5,NOTE_G5,
-                          
-                          NOTE_C5,NOTE_C5,NOTE_D6,0,
-                          NOTE_A5,0,0,NOTE_GS5,
-                          0,NOTE_G5,0,NOTE_F5,
-                          0,NOTE_D5,NOTE_F5,NOTE_G5,
-                          
-                          NOTE_B4,NOTE_B4,NOTE_D6,0,
-                          NOTE_A5,0,0,NOTE_GS5,
-                          0,NOTE_G5,0,NOTE_F5,
-                          0,NOTE_D5,NOTE_F5,NOTE_G5,
-                          
-                          NOTE_AS4,NOTE_AS4,NOTE_D6,0,
-                          NOTE_A5,0,0,NOTE_GS5,
-                          0,NOTE_G5,0,NOTE_F5,
-                          0,NOTE_D5,NOTE_F5,NOTE_G5};
+// http://onlinesequencer.net/155305
+unsigned short action[] = {NOTE_D5,NOTE_D5,NOTE_D6,0,
+                           NOTE_A5,0,0,NOTE_GS5,
+                           0,NOTE_G5,0,NOTE_F5,
+                           0,NOTE_D5,NOTE_F5,NOTE_G5,
+                           NOTE_C5,NOTE_C5,NOTE_D6,0,
+                           NOTE_A5,0,0,NOTE_GS5,
+                           0,NOTE_G5,0,NOTE_F5,
+                           0,NOTE_D5,NOTE_F5,NOTE_G5,
+                           NOTE_B4,NOTE_B4,NOTE_D6,0,
+                           NOTE_A5,0,0,NOTE_GS5,
+                           0,NOTE_G5,0,NOTE_F5,
+                           0,NOTE_D5,NOTE_F5,NOTE_G5,
+                           NOTE_AS4,NOTE_AS4,NOTE_D6,0,
+                           NOTE_A5,0,0,NOTE_GS5,
+                           0,NOTE_G5,0,NOTE_F5,
+                           0,NOTE_D5,NOTE_F5,NOTE_G5};
 short megalovania = -1;
 byte t = 0;
+// http://onlinesequencer.net/123623
+unsigned short victory[] = {NOTE_C5,NOTE_E5,NOTE_G5,NOTE_C6,
+                            NOTE_G5,NOTE_E6,NOTE_G6,0,
+                            0,NOTE_E6,0,0,
+                            NOTE_GS4,NOTE_C5,NOTE_DS5,NOTE_GS5,
+                            NOTE_C6,NOTE_DS6,NOTE_GS6,0,
+                            0,NOTE_DS6,0,0,
+                            NOTE_AS4,NOTE_D5,NOTE_F5,NOTE_AS5,
+                            NOTE_D6,NOTE_F5,NOTE_AS6,NOTE_C6,
+                            NOTE_D6,NOTE_F5,NOTE_AS6,0,
+                            0,0,NOTE_AS6,NOTE_AS6,
+                            NOTE_C7};
+short victoryProgress = -1;
 
 void setup() {
   // voodoo timer (http://letsmakerobots.com/node/28278) for ticker and music
@@ -74,6 +90,10 @@ void setup() {
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
   lcd.createChar(0, smiley);
+  lcd.createChar(1, curvedbeta);
+  lcd.createChar(2, f);
+  lcd.createChar(3, g);
+  lcd.createChar(4, a);
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
   while (!Serial) {
@@ -112,8 +132,8 @@ void loop() {
     switch (state) {
       case 0: // welcome
         lcd.clear();
-        lcd.print("WordAround v1b ");
-        lcd.write(byte(0)); // :)
+        lcd.print("WordAround v2");
+        lcd.write(byte(1)); // little symbol
         lcd.setCursor(0,1);
         lcd.print("Press ");
         lcd.write(0b01111110); // ->
@@ -126,6 +146,7 @@ void loop() {
           Apoints = Bpoints = pointTotal = 0;
           gaveTeamPoint = false;
           megalovania = -1;
+          victoryProgress = -1;
           t = 0;
         } else if (buttonA && buttonB && pressed) {
           state = 4; // :^)
@@ -216,9 +237,10 @@ void loop() {
             gaveTeamPoint = true;
             if (Apoints >= pointsToWin || Bpoints >= pointsToWin) {
               state = 3; // someone won
+              victoryProgress = 0;
             }
-            if (megalovania == -1 && pointTotal >= pointsToWin-2) {
-              megalovania = 0; // it's getting close!
+            if (megalovania == -1 && Apoints >= pointsToWin-1 && Bpoints >= pointsToWin-1) {
+              megalovania = 0; // it's getting close! is everybody determined enough?
             }
             redraws++;
           } 
@@ -245,28 +267,19 @@ void loop() {
         if (buttonC) { // restart game
           state = 0;
         } else {
-          // play win sound, change in future?
-          for (int i = 0; i < 2; i++) {
-            playNote(NOTE_C4, notelength);
-            delay(notelength*3);
-            playNote(NOTE_E4, notelength);
-            delay(notelength*3);
-            playNote(NOTE_G4, notelength);
-            delay(notelength*3);
-            playNote(NOTE_C5, notelength);
-            delay(notelength*3);
-          }
-          playNote(NOTE_E5, notelength);
-          delay(notelength);
-          playNote(NOTE_G5, notelength);
-          delay(notelength);
-          playNote(NOTE_C6, notelength);
-          delay(notelength);
+          delay(3000); // wait at least 3 seconds before continueing
+          lcd.print(' ');
+          lcd.write(0b01111110);
         }
         break;
       case 4: // easter egg, needs change
         lcd.clear();
-        lcd.print("ey lamo");
+        lcd.print("lots of love");
+        lcd.setCursor(0,1);
+        // waiting for more submissions...
+        lcd.write(byte(2));
+        lcd.write(byte(3));
+        lcd.write(byte(4));
         if (buttonC) {
           state = 0;
         }
@@ -279,7 +292,7 @@ void loop() {
   delay(5);
 }
 
-ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz
+ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
   if (state == 1) {
     /* Ticks:
     until 50%: every second
@@ -296,18 +309,23 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz
         playNote(NOTE_C4, 10);
       } else if (elapsedP >= 70 && elapsedP < 90 && t % 2 == 0) {
         playNote(NOTE_C4, 10);
-      } else if (elapsedP >= 90 && t % 1 == 0) {
+      } else if (elapsedP >= 90) {
         playNote(NOTE_C4, 10);
       }
     } else {
       // if teams are close, give determination
-      if (notes[megalovania] > 0) playNote(notes[megalovania], 50);
+      if (action[megalovania] > 0) playNote(action[megalovania], 50);
       megalovania++;
-      if (megalovania == sizeof(notes) / sizeof(short)) megalovania = 0;
+      if (megalovania == sizeof(action) / sizeof(short)) megalovania = 0;
     }
-    t++;
-    if (t == 8) t = 0;
+  } else if (state == 3 && victoryProgress > -1 &&
+             victoryProgress < sizeof(victory) / sizeof(short)) {
+    // victory music
+    playNote(victory[victoryProgress], 50);
+    victoryProgress++;
   }
+  t++;
+  if (t == 8) t = 0;
 }
 
 void reread() {
@@ -345,6 +363,8 @@ void reread() {
           }
         }
       }
+      // skip words > 32 characters
+      if (!(c == '\n' || c == '\r')) i--;
     }
     // only one file can be open at a time
     dataFile.close();
