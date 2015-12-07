@@ -4,8 +4,10 @@
 #include "pitches.h"
 
 // Configurable
-const byte pointsToWin = 3; // point to win a game
-const byte preloadWords = 5; // number of words to load into memory
+#define pointsToWin  3  // point to win a game
+#define preloadWords 5  // number of words to load into memory
+#define minRound     50 // minimum number and
+#define maxRound     70 // maximum number of seconds a game lasts
 
 // Don't change below
 LiquidCrystal lcd(6, 7, 5, 8, 3, 2);
@@ -13,7 +15,7 @@ char words[preloadWords][32];
 unsigned short wordIndex = 0;
 short prevWordIndex = -1;
 char phrase[32];
-byte roundLength = 10; // set between 50 to 70 seconds
+byte roundLength; // set between 50 to 70 seconds
 
 boolean registeredPress = false;
 boolean pressed = false;
@@ -29,7 +31,7 @@ byte redraws = 0;
 unsigned long filePosition;
 int notelength = 60;
 
-byte smiley[8] = {
+/*byte smiley[8] = {
   B00000,
   B10001,
   B00000,
@@ -37,7 +39,7 @@ byte smiley[8] = {
   B10001,
   B01110,
   B00000,
-};
+};*/
 byte curvedbeta[8] = {16,16,10,13,9,9,22};
 byte f[8] = {3,4,4,14,4,4,24};
 byte g[8] = {31,31,4,31,31,14,17};
@@ -80,7 +82,7 @@ unsigned short startup[] = {NOTE_C5,NOTE_C5,0,NOTE_F5,
                             NOTE_FS5,NOTE_F5,NOTE_G5};
 short startupProgress = -1;
 unsigned short roundover[] = {NOTE_E5,NOTE_E5,NOTE_D5,NOTE_D5,
-                              NOTE_D5,0,NOTE_D5,NOTE_D5};
+                              NOTE_D5,0,NOTE_D5,NOTE_D5}; // kind of sucks...
 short roundoverProgress = -1;
 
 void setup() {
@@ -95,7 +97,7 @@ void setup() {
   randomSeed(analogRead(10)); // pin 10 is free, so seed random using that
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
-  lcd.createChar(0, smiley);
+  //lcd.createChar(0, smiley);
   lcd.createChar(1, curvedbeta);
   lcd.createChar(2, f);
   lcd.createChar(3, g);
@@ -154,7 +156,7 @@ void loop() {
           gaveTeamPoint = false;
           megalovania = victoryProgress = roundoverProgress = -1;
           t = 0;
-          roundLength = random(50, 70);
+          roundLength = random(minRound, maxRound);
         } else if (buttonA && buttonB && pressed) {
           state = 4; // :^)
         }
@@ -238,7 +240,7 @@ void loop() {
           }
         } else {
           if (buttonA || buttonB) {
-            roundLength = random(50, 70);
+            roundLength = random(minRound, maxRound);
             if (buttonA) { // award points
               Apoints++;
             } else if (buttonB) {
@@ -404,3 +406,4 @@ void reread() {
 void playNote(int note, int len) {
   tone(10, note, len);
 }
+
