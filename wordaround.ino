@@ -5,7 +5,6 @@
 
 // Configurable
 const byte pointsToWin = 3; // point to win a game
-const byte roundLength = 10; // in seconds
 const byte preloadWords = 5; // number of words to load into memory
 
 // Don't change below
@@ -14,6 +13,7 @@ char words[preloadWords][32];
 unsigned short wordIndex = 0;
 short prevWordIndex = -1;
 char phrase[32];
+byte roundLength = 10; // set between 50 to 70 seconds
 
 boolean registeredPress = false;
 boolean pressed = false;
@@ -154,6 +154,7 @@ void loop() {
           gaveTeamPoint = false;
           megalovania = victoryProgress = roundoverProgress = -1;
           t = 0;
+          roundLength = random(50, 70);
         } else if (buttonA && buttonB && pressed) {
           state = 4; // :^)
         }
@@ -237,6 +238,7 @@ void loop() {
           }
         } else {
           if (buttonA || buttonB) {
+            roundLength = random(50, 70);
             if (buttonA) { // award points
               Apoints++;
             } else if (buttonB) {
