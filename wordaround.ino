@@ -4,7 +4,7 @@
 #include "pitches.h"
 
 // Configurable
-#define pointsToWin  3  // point to win a game
+#define pointsToWin  1  // point to win a game
 #define preloadWords 5  // number of words to load into memory
 #define minRound     50 // minimum number and
 #define maxRound     70 // maximum number of seconds a game lasts
@@ -81,8 +81,9 @@ short victoryProgress = -1;
 unsigned short startup[] = {NOTE_C5,NOTE_C5,0,NOTE_F5,
                             NOTE_FS5,NOTE_F5,NOTE_G5};
 short startupProgress = -1;
-unsigned short roundover[] = {NOTE_E5,NOTE_E5,NOTE_D5,NOTE_D5,
-                              NOTE_D5,0,NOTE_D5,NOTE_D5}; // kind of sucks...
+unsigned short roundover[] = {NOTE_G5,NOTE_D5,0,NOTE_D5,
+                              NOTE_D5,NOTE_C5,NOTE_B4,NOTE_G4,
+                              NOTE_E4,0,NOTE_E4,NOTE_C4}; // kind of sucks...
 short roundoverProgress = -1;
 
 void setup() {
