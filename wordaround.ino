@@ -4,10 +4,10 @@
 #include "pitches.h"
 
 // Configurable
-#define pointsToWin  0  // point to win a game
+#define pointsToWin  3  // point to win a game
 #define preloadWords 5  // number of words to load into memory
-#define minRound     1 // minimum number and
-#define maxRound     2 // maximum number of seconds a game lasts
+#define minRound     10 // minimum number and
+#define maxRound     20 // maximum number of seconds a game lasts
 
 // Don't change below
 LiquidCrystal lcd(6, 7, 5, 8, 3, 2);
@@ -84,11 +84,17 @@ short victoryProgress = -1;
 unsigned short startup[] = {NOTE_C5,NOTE_C5,0,NOTE_F5,
                             NOTE_FS5,NOTE_F5,NOTE_G5};
 short startupProgress = -1;
-unsigned short roundover[] = {NOTE_G5,NOTE_D5,0,NOTE_D5,
+/*unsigned short roundover[] = {NOTE_G5,NOTE_D5,0,NOTE_D5,
                               NOTE_D5,NOTE_EXT, // double
                               NOTE_C5,NOTE_EXT, // double
                               NOTE_D4,NOTE_EXT, // double
                               NOTE_G4,
+                              NOTE_E4,0,NOTE_E4,NOTE_C4};*/
+unsigned short roundover[] = {NOTE_C5,NOTE_F5,0,NOTE_F5,
+                              NOTE_F5,NOTE_EXT,// double
+                              NOTE_E5, // double
+                              NOTE_D5,NOTE_EXT, // double
+                              NOTE_C5,
                               NOTE_E4,0,NOTE_E4,NOTE_C4};
 short roundoverProgress = -1;
 
@@ -136,6 +142,18 @@ void loop() {
   buttonA = analogRead(3) > 500 ? true : false; // value are either 0 or 1023
   buttonB = analogRead(4) > 500 ? true : false; // so map > 500 to HIGH
   buttonC = analogRead(5) > 500 ? true : false; // and anything below to LOW
+  /*Serial.print(analogRead(3));
+  Serial.print(" ");
+  Serial.print(analogRead(4));
+  Serial.print(" ");
+  Serial.print(analogRead(5));
+  Serial.print(" ");
+  Serial.print(buttonA);
+  Serial.print(" ");
+  Serial.print(buttonB);
+  Serial.print(" ");
+  Serial.print(buttonC);
+  Serial.println();*/
   if ((buttonA || buttonB || buttonC) && !registeredPress) {
     registeredPress = true; // press and hold triggers only once
     pressed = true;
@@ -372,8 +390,10 @@ void pnfnumasl(unsigned short *melody, short location, unsigned short len) {
 void playNote(unsigned short note, unsigned short len) {
   if (note > 0) {
     tone(10, note, len);
+    /*Serial.print(note);
+    Serial.print(" ");
+    Serial.println(len);*/
   }
-  //prevNote
 }
 
 void reread() {
@@ -423,4 +443,3 @@ void reread() {
     lcd.print("words.txt");
   }
 }
-
