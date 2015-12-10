@@ -4,10 +4,10 @@
 #include "pitches.h"
 
 // Configurable
-#define pointsToWin  1  // point to win a game
+#define pointsToWin  0  // point to win a game
 #define preloadWords 5  // number of words to load into memory
-#define minRound     50 // minimum number and
-#define maxRound     70 // maximum number of seconds a game lasts
+#define minRound     1 // minimum number and
+#define maxRound     2 // maximum number of seconds a game lasts
 
 // Don't change below
 LiquidCrystal lcd(6, 7, 5, 8, 3, 2);
@@ -29,7 +29,7 @@ unsigned long roundStart = 0;
 byte Apoints, Bpoints;
 byte redraws = 0;
 unsigned long filePosition;
-int notelength = 60;
+short prevNote = 0;
 
 /*byte smiley[8] = {
   B00000,
@@ -51,14 +51,17 @@ unsigned short action[] = {NOTE_D5,NOTE_D5,NOTE_D6,0,
                            NOTE_A5,0,0,NOTE_GS5,
                            0,NOTE_G5,0,NOTE_F5,
                            0,NOTE_D5,NOTE_F5,NOTE_G5,
+                           
                            NOTE_C5,NOTE_C5,NOTE_D6,0,
                            NOTE_A5,0,0,NOTE_GS5,
                            0,NOTE_G5,0,NOTE_F5,
                            0,NOTE_D5,NOTE_F5,NOTE_G5,
+                           
                            NOTE_B4,NOTE_B4,NOTE_D6,0,
                            NOTE_A5,0,0,NOTE_GS5,
                            0,NOTE_G5,0,NOTE_F5,
                            0,NOTE_D5,NOTE_F5,NOTE_G5,
+                           
                            NOTE_AS4,NOTE_AS4,NOTE_D6,0,
                            NOTE_A5,0,0,NOTE_GS5,
                            0,NOTE_G5,0,NOTE_F5,
@@ -82,8 +85,11 @@ unsigned short startup[] = {NOTE_C5,NOTE_C5,0,NOTE_F5,
                             NOTE_FS5,NOTE_F5,NOTE_G5};
 short startupProgress = -1;
 unsigned short roundover[] = {NOTE_G5,NOTE_D5,0,NOTE_D5,
-                              NOTE_D5,NOTE_C5,NOTE_B4,NOTE_G4,
-                              NOTE_E4,0,NOTE_E4,NOTE_C4}; // kind of sucks...
+                              NOTE_D5,NOTE_EXT, // double
+                              NOTE_C5,NOTE_EXT, // double
+                              NOTE_D4,NOTE_EXT, // double
+                              NOTE_G4,
+                              NOTE_E4,0,NOTE_E4,NOTE_C4};
 short roundoverProgress = -1;
 
 void setup() {
@@ -226,7 +232,7 @@ void loop() {
           lcd.print(" vs. B:");
           lcd.print(Bpoints);
           lcd.write(0b01111110); // ->
-          if (roundoverProgress == sizeof(roundover)/sizeof(short)+9) {
+          if (roundoverProgress == sizeof(roundover)/sizeof(short)) {
             if (buttonC) {
               prevWordIndex = -1;
               roundStart = millis();
@@ -332,7 +338,7 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
       }
     } else {
       // if teams are close, give determination
-      if (action[megalovania] > 0) playNote(action[megalovania], 50);
+      playNote(action[megalovania], 50);
       megalovania++;
       if (megalovania == sizeof(action)/sizeof(short)) megalovania = 0;
     }
@@ -342,18 +348,32 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
     playNote(victory[victoryProgress], 50);
     victoryProgress++;
   } else if (state == 2 && roundoverProgress > -1 &&
-             roundoverProgress < (sizeof(roundover)/sizeof(short)+9)) {
+             roundoverProgress < sizeof(roundover)/sizeof(short)) {
     // round over music
-    if (roundoverProgress > 8) {
-      playNote(roundover[roundoverProgress-9], 50);
-    } else if (roundoverProgress == 0) {
-      playNote(NOTE_C4, 1000);
-    }
+    pnfnumasl(roundover, roundoverProgress, 50);
     roundoverProgress++;
     redraws++;
   }
   t++;
   if (t == 8) t = 0;
+}
+
+//void playNoteFromNonUniformMelodyAtSpecifiedLocation
+void pnfnumasl(unsigned short *melody, short location, unsigned short len) {
+  if (melody[location] != NOTE_EXT) {
+    byte extenders = 1;
+    while (melody[location+extenders] == NOTE_EXT) {
+      extenders++;
+    }
+    playNote(melody[location], len*extenders);
+  }
+}
+
+void playNote(unsigned short note, unsigned short len) {
+  if (note > 0) {
+    tone(10, note, len);
+  }
+  //prevNote
 }
 
 void reread() {
@@ -402,9 +422,5 @@ void reread() {
     lcd.setCursor(0,1);
     lcd.print("words.txt");
   }
-}
-
-void playNote(int note, int len) {
-  tone(10, note, len);
 }
 
