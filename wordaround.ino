@@ -4,7 +4,7 @@
 #include "pitches.h"
 
 // Configurable
-#define pointsToWin  3  // point to win a game
+#define pointsToWin  2  // point to win a game
 #define preloadWords 5  // number of words to load into memory
 #define minRound     10 // minimum number and
 #define maxRound     20 // maximum number of seconds a game lasts
@@ -47,6 +47,11 @@ byte a[8] = {14,10,14,10,10,0,31};
 
 // mission critical:
 // http://onlinesequencer.net/155305
+/*unsigned short actiondiff[] = {NOTE_D5,NOTE_C5,NOTE_B4,NOTE_AS4};
+unsigned short actioncommon[] = {NOTE_D6,0,
+                              NOTE_A5,0,0,NOTE_GS5,
+                              0,NOTE_G5,0,NOTE_F5,
+                              0,NOTE_D5,NOTE_F5,NOTE_G5};*/
 unsigned short action[] = {NOTE_D5,NOTE_D5,NOTE_D6,0,
                            NOTE_A5,0,0,NOTE_GS5,
                            0,NOTE_G5,0,NOTE_F5,
@@ -312,7 +317,8 @@ void loop() {
         break;
       case 4: // easter egg, needs change
         lcd.clear();
-        lcd.print("lots of love");
+        lcd.print("juan.");
+        //        |                |
         lcd.setCursor(0,1);
         // waiting for more submissions...
         lcd.write(byte(2));
@@ -356,8 +362,14 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
       }
     } else {
       // if teams are close, give determination
+      /*if (megalovania % 16 < 2) { // first two notes
+        playNote(actiondiff[megalovania/16], 50);
+      } else {
+        playNote(actioncommon[megalovania%16-2], 50);
+      }*/
       playNote(action[megalovania], 50);
       megalovania++;
+      //if (megalovania == (sizeof(megalovania)+2)*sizeof(actioncommon)/sizeof(short)) megalovania = 0;
       if (megalovania == sizeof(action)/sizeof(short)) megalovania = 0;
     }
   } else if (state == 3 && victoryProgress > -1 &&
@@ -380,7 +392,8 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
 void pnfnumasl(unsigned short *melody, short location, unsigned short len) {
   if (melody[location] != NOTE_EXT) {
     byte extenders = 1;
-    while (melody[location+extenders] == NOTE_EXT) {
+    while (melody[location+extenders] == NOTE_EXT
+           && location+extenders <= sizeof(melody)/sizeof(short)) {
       extenders++;
     }
     playNote(melody[location], len*extenders);
