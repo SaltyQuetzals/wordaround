@@ -78,6 +78,23 @@ unsigned short roundover[] = {NOTE_C5,NOTE_F5,0,NOTE_F5,
                               NOTE_C5,
                               NOTE_E4,0,NOTE_E4,NOTE_C4};
 short roundoverProgress = -1;
+unsigned short credits[] = {NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_D6,NOTE_FS6,
+                            NOTE_GS6,NOTE_A6,NOTE_D6,NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_B5,NOTE_E6,NOTE_FS6,NOTE_GS6,
+                            NOTE_B5,NOTE_E6,NOTE_FS6,NOTE_GS6,NOTE_FS6,NOTE_GS6,NOTE_FS6,NOTE_F6,NOTE_CS6,NOTE_FS6,
+                            NOTE_GS6,NOTE_A6,NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_D6,NOTE_FS6,NOTE_GS6,NOTE_A6,
+                            NOTE_D6,NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_B5,NOTE_E6,NOTE_FS6,NOTE_GS6,NOTE_B5,NOTE_E6,
+                            NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_B6,NOTE_A6,NOTE_CS6,NOTE_CS6,NOTE_A6,NOTE_GS6,NOTE_FS6,
+                            NOTE_CS6,NOTE_E6,NOTE_E6,NOTE_FS6,NOTE_E6,NOTE_D6,NOTE_B5,NOTE_FS6,NOTE_E6,NOTE_D6,
+                            NOTE_CS6,NOTE_CS6,NOTE_D6,NOTE_E6,NOTE_D6,NOTE_CS6,NOTE_A6,NOTE_GS6,NOTE_FS6,NOTE_CS6,
+                            NOTE_E6,NOTE_D6,NOTE_CS6,NOTE_D6,NOTE_B5,NOTE_FS6,NOTE_E6,NOTE_D6,NOTE_CS6,NOTE_CS6,
+                            NOTE_D6,NOTE_E6,NOTE_D6,NOTE_CS6,NOTE_CS6,NOTE_CS6,NOTE_D6,NOTE_D6,NOTE_D6,NOTE_E6,
+                            NOTE_GS6,NOTE_FS6,NOTE_D6,NOTE_CS6,NOTE_A6,NOTE_GS6,NOTE_A6,NOTE_FS6,NOTE_GS6,NOTE_A6,
+                            NOTE_B6,NOTE_A6,NOTE_GS6,NOTE_A6,NOTE_GS6,NOTE_A6,NOTE_GS6,NOTE_FS6,NOTE_GS6,NOTE_E6,
+                            NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_GS6,NOTE_FS6,NOTE_GS6,NOTE_FS6,NOTE_F6,NOTE_A6,NOTE_GS6,
+                            NOTE_A6,NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_B6,NOTE_A6,NOTE_GS6,NOTE_A6,NOTE_GS6,NOTE_A6,
+                            NOTE_GS6,NOTE_FS6,NOTE_GS6,NOTE_E6,NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_GS6,NOTE_FS6,NOTE_GS6,
+                            NOTE_FS6,NOTE_F6};
+byte creditsprogress = 0;
 
 void setup() {
   // voodoo timer (http://letsmakerobots.com/node/28278) for ticker and music
@@ -165,6 +182,7 @@ void loop() {
           roundLength = random(minRound, maxRound);
         } else if (buttonA && buttonB && pressed) {
           state = 4; // :^)
+          creditsprogress = 0;
         }
         break;
       case 1: // playing
@@ -313,7 +331,11 @@ void loop() {
 }
 
 ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
-  if (startupProgress > -1 && startupProgress < sizeof(startup) / sizeof(short)) {
+  if (state == 4) {
+    playNote(credits[creditsprogress], 100);
+    creditsprogress++;
+    if (creditsprogress == sizeof(credits)/sizeof(short)) creditsprogress = 0;
+  } else if (startupProgress > -1 && startupProgress < sizeof(startup) / sizeof(short)) {
     // startup music
     playNote(startup[startupProgress], 100);
     startupProgress++;
