@@ -78,22 +78,20 @@ unsigned short roundover[] = {NOTE_C5,NOTE_F5,0,NOTE_F5,
                               NOTE_C5,
                               NOTE_E4,0,NOTE_E4,NOTE_C4};
 short roundoverProgress = -1;
-unsigned short credits[] = {NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_D6,NOTE_FS6,
-                            NOTE_GS6,NOTE_A6,NOTE_D6,NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_B5,NOTE_E6,NOTE_FS6,NOTE_GS6,
-                            NOTE_B5,NOTE_E6,NOTE_FS6,NOTE_GS6,NOTE_FS6,NOTE_GS6,NOTE_FS6,NOTE_F6,NOTE_CS6,NOTE_FS6,
-                            NOTE_GS6,NOTE_A6,NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_D6,NOTE_FS6,NOTE_GS6,NOTE_A6,
-                            NOTE_D6,NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_B5,NOTE_E6,NOTE_FS6,NOTE_GS6,NOTE_B5,NOTE_E6,
-                            NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_B6,NOTE_A6,NOTE_CS6,NOTE_CS6,NOTE_A6,NOTE_GS6,NOTE_FS6,
-                            NOTE_CS6,NOTE_E6,NOTE_E6,NOTE_FS6,NOTE_E6,NOTE_D6,NOTE_B5,NOTE_FS6,NOTE_E6,NOTE_D6,
-                            NOTE_CS6,NOTE_CS6,NOTE_D6,NOTE_E6,NOTE_D6,NOTE_CS6,NOTE_A6,NOTE_GS6,NOTE_FS6,NOTE_CS6,
-                            NOTE_E6,NOTE_D6,NOTE_CS6,NOTE_D6,NOTE_B5,NOTE_FS6,NOTE_E6,NOTE_D6,NOTE_CS6,NOTE_CS6,
-                            NOTE_D6,NOTE_E6,NOTE_D6,NOTE_CS6,NOTE_CS6,NOTE_CS6,NOTE_D6,NOTE_D6,NOTE_D6,NOTE_E6,
-                            NOTE_GS6,NOTE_FS6,NOTE_D6,NOTE_CS6,NOTE_A6,NOTE_GS6,NOTE_A6,NOTE_FS6,NOTE_GS6,NOTE_A6,
-                            NOTE_B6,NOTE_A6,NOTE_GS6,NOTE_A6,NOTE_GS6,NOTE_A6,NOTE_GS6,NOTE_FS6,NOTE_GS6,NOTE_E6,
-                            NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_GS6,NOTE_FS6,NOTE_GS6,NOTE_FS6,NOTE_F6,NOTE_A6,NOTE_GS6,
-                            NOTE_A6,NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_B6,NOTE_A6,NOTE_GS6,NOTE_A6,NOTE_GS6,NOTE_A6,
-                            NOTE_GS6,NOTE_FS6,NOTE_GS6,NOTE_E6,NOTE_FS6,NOTE_GS6,NOTE_A6,NOTE_GS6,NOTE_FS6,NOTE_GS6,
-                            NOTE_FS6,NOTE_F6};
+unsigned short credits[] = {NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,
+                            0,0,
+                            NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,
+                            0,0,0,0,0,0,
+                            NOTE_D6,NOTE_FS6,NOTE_GS6,NOTE_A6,
+                            0,0,
+                            NOTE_D6,NOTE_FS6,NOTE_GS6,NOTE_A6,
+                            0,0,0,0,0,0,
+                            NOTE_B5,NOTE_E6,NOTE_FS6,NOTE_GS6,
+                            0,0,
+                            NOTE_B5,NOTE_E6,NOTE_FS6,NOTE_GS6,
+                            0,0,0,0,0,0,
+                            NOTE_FS6,NOTE_GS6,NOTE_FS6,NOTE_F6,
+                            0,0,0,0,0,0,0,0,0,0};
 byte creditsprogress = 0;
 
 void setup() {
