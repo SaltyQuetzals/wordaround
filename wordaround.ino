@@ -47,30 +47,12 @@ byte a[8] = {14,10,14,10,10,0,31};
 
 // mission critical:
 // http://onlinesequencer.net/155305
-/*unsigned short actiondiff[] = {NOTE_D5,NOTE_C5,NOTE_B4,NOTE_AS4};
+unsigned short actiondiff[] = {NOTE_D5,NOTE_C5,NOTE_B4,NOTE_AS4};
 unsigned short actioncommon[] = {NOTE_D6,0,
                               NOTE_A5,0,0,NOTE_GS5,
                               0,NOTE_G5,0,NOTE_F5,
-                              0,NOTE_D5,NOTE_F5,NOTE_G5};*/
-unsigned short action[] = {NOTE_D5,NOTE_D5,NOTE_D6,0,
-                           NOTE_A5,0,0,NOTE_GS5,
-                           0,NOTE_G5,0,NOTE_F5,
-                           0,NOTE_D5,NOTE_F5,NOTE_G5,
-                           
-                           NOTE_C5,NOTE_C5,NOTE_D6,0,
-                           NOTE_A5,0,0,NOTE_GS5,
-                           0,NOTE_G5,0,NOTE_F5,
-                           0,NOTE_D5,NOTE_F5,NOTE_G5,
-                           
-                           NOTE_B4,NOTE_B4,NOTE_D6,0,
-                           NOTE_A5,0,0,NOTE_GS5,
-                           0,NOTE_G5,0,NOTE_F5,
-                           0,NOTE_D5,NOTE_F5,NOTE_G5,
-                           
-                           NOTE_AS4,NOTE_AS4,NOTE_D6,0,
-                           NOTE_A5,0,0,NOTE_GS5,
-                           0,NOTE_G5,0,NOTE_F5,
-                           0,NOTE_D5,NOTE_F5,NOTE_G5};
+                              0,NOTE_D5,NOTE_F5,NOTE_G5};
+byte actionlength = sizeof(actioncommon)/sizeof(short)+2;
 short megalovania = -1;
 byte t = 0;
 // http://onlinesequencer.net/123623
@@ -89,15 +71,9 @@ short victoryProgress = -1;
 unsigned short startup[] = {NOTE_C5,NOTE_C5,0,NOTE_F5,
                             NOTE_FS5,NOTE_F5,NOTE_G5};
 short startupProgress = -1;
-/*unsigned short roundover[] = {NOTE_G5,NOTE_D5,0,NOTE_D5,
-                              NOTE_D5,NOTE_EXT, // double
-                              NOTE_C5,NOTE_EXT, // double
-                              NOTE_D4,NOTE_EXT, // double
-                              NOTE_G4,
-                              NOTE_E4,0,NOTE_E4,NOTE_C4};*/
 unsigned short roundover[] = {NOTE_C5,NOTE_F5,0,NOTE_F5,
-                              NOTE_F5,NOTE_EXT,// double
-                              NOTE_E5, // double
+                              NOTE_F5,NOTE_EXT, // double
+                              NOTE_E5,
                               NOTE_D5,NOTE_EXT, // double
                               NOTE_C5,
                               NOTE_E4,0,NOTE_E4,NOTE_C4};
@@ -362,15 +338,13 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
       }
     } else {
       // if teams are close, give determination
-      /*if (megalovania % 16 < 2) { // first two notes
-        playNote(actiondiff[megalovania/16], 50);
-      } else {
-        playNote(actioncommon[megalovania%16-2], 50);
-      }*/
-      playNote(action[megalovania], 50);
+      if (megalovania % actionlength < 2) { // first two notes
+        playNote(actiondiff[megalovania/actionlength], 50);
+      } else { // other melody
+        playNote(actioncommon[megalovania%actionlength-2], 50);
+      }
       megalovania++;
-      //if (megalovania == (sizeof(megalovania)+2)*sizeof(actioncommon)/sizeof(short)) megalovania = 0;
-      if (megalovania == sizeof(action)/sizeof(short)) megalovania = 0;
+      if (megalovania == sizeof(actiondiff)*actionlength/sizeof(short)) megalovania = 0;
     }
   } else if (state == 3 && victoryProgress > -1 &&
              victoryProgress < sizeof(victory)/sizeof(short)) {
@@ -403,9 +377,6 @@ void pnfnumasl(unsigned short *melody, short location, unsigned short len) {
 void playNote(unsigned short note, unsigned short len) {
   if (note > 0) {
     tone(10, note, len);
-    /*Serial.print(note);
-    Serial.print(" ");
-    Serial.println(len);*/
   }
 }
 
