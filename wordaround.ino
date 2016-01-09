@@ -1,6 +1,7 @@
 #include <LiquidCrystal.h>
 #include <SPI.h>
 #include <SD.h>
+#include <avr/pgmspace.h>
 #include "pitches.h"
 
 // Configurable
@@ -47,8 +48,8 @@ byte a[8] = {14,10,14,10,10,0,31};
 
 // mission critical:
 // http://onlinesequencer.net/155305
-unsigned short actiondiff[] = {NOTE_D5,NOTE_C5,NOTE_B4,NOTE_AS4};
-unsigned short actioncommon[] = {NOTE_D6,0,
+unsigned short actiondiff[] PROGMEM = {NOTE_D5,NOTE_C5,NOTE_B4,NOTE_AS4};
+unsigned short actioncommon[] PROGMEM = {NOTE_D6,0,
                               NOTE_A5,0,0,NOTE_GS5,
                               0,NOTE_G5,0,NOTE_F5,
                               0,NOTE_D5,NOTE_F5,NOTE_G5};
@@ -56,7 +57,7 @@ byte actionlength = sizeof(actioncommon)/sizeof(short)+2;
 short megalovania = -1;
 byte t = 0;
 // http://onlinesequencer.net/123623
-unsigned short victory[] = {NOTE_C5,NOTE_E5,NOTE_G5,NOTE_C6,
+unsigned short victory[] PROGMEM = {NOTE_C5,NOTE_E5,NOTE_G5,NOTE_C6,
                             NOTE_G5,NOTE_E6,NOTE_G6,0,
                             0,NOTE_E6,0,0,
                             NOTE_GS4,NOTE_C5,NOTE_DS5,NOTE_GS5,
@@ -68,17 +69,17 @@ unsigned short victory[] = {NOTE_C5,NOTE_E5,NOTE_G5,NOTE_C6,
                             0,0,NOTE_AS6,NOTE_AS6,
                             NOTE_C7};
 short victoryProgress = -1;
-unsigned short startup[] = {NOTE_C5,NOTE_C5,0,NOTE_F5,
+unsigned short startup[] PROGMEM = {NOTE_C5,NOTE_C5,0,NOTE_F5,
                             NOTE_FS5,NOTE_F5,NOTE_G5};
 short startupProgress = -1;
-unsigned short roundover[] = {NOTE_C5,NOTE_F5,0,NOTE_F5,
+unsigned short roundover[] PROGMEM = {NOTE_C5,NOTE_F5,0,NOTE_F5,
                               NOTE_F5,NOTE_EXT, // double
                               NOTE_E5,
                               NOTE_D5,NOTE_EXT, // double
                               NOTE_C5,
                               NOTE_E4,0,NOTE_E4,NOTE_C4};
 short roundoverProgress = -1;
-unsigned short credits[] = {NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,
+unsigned short credits[] PROGMEM = {NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,
                             0,0,
                             NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,
                             0,0,0,0,0,0,
