@@ -7,8 +7,8 @@
 // Configurable
 #define pointsToWin  2  // point to win a game
 #define preloadWords 5  // number of words to load into memory
-#define minRound     10 // minimum number and
-#define maxRound     20 // maximum number of seconds a game lasts
+#define minRound     4 // minimum number and
+#define maxRound     6 // maximum number of seconds a game lasts
 
 // Don't change below
 LiquidCrystal lcd(6, 7, 5, 8, 3, 2);
@@ -48,8 +48,8 @@ byte a[8] = {14,10,14,10,10,0,31};
 
 // mission critical:
 // http://onlinesequencer.net/155305
-unsigned short actiondiff[] PROGMEM = {NOTE_D5,NOTE_C5,NOTE_B4,NOTE_AS4};
-unsigned short actioncommon[] PROGMEM = {NOTE_D6,0,
+const uint16_t actiondiff[] PROGMEM = {NOTE_D5,NOTE_C5,NOTE_B4,NOTE_AS4};
+const uint16_t actioncommon[] PROGMEM = {NOTE_D6,0,
                               NOTE_A5,0,0,NOTE_GS5,
                               0,NOTE_G5,0,NOTE_F5,
                               0,NOTE_D5,NOTE_F5,NOTE_G5};
@@ -57,7 +57,7 @@ byte actionlength = sizeof(actioncommon)/sizeof(short)+2;
 short megalovania = -1;
 byte t = 0;
 // http://onlinesequencer.net/123623
-unsigned short victory[] PROGMEM = {NOTE_C5,NOTE_E5,NOTE_G5,NOTE_C6,
+const uint16_t victory[] PROGMEM = {NOTE_C5,NOTE_E5,NOTE_G5,NOTE_C6,
                             NOTE_G5,NOTE_E6,NOTE_G6,0,
                             0,NOTE_E6,0,0,
                             NOTE_GS4,NOTE_C5,NOTE_DS5,NOTE_GS5,
@@ -69,17 +69,17 @@ unsigned short victory[] PROGMEM = {NOTE_C5,NOTE_E5,NOTE_G5,NOTE_C6,
                             0,0,NOTE_AS6,NOTE_AS6,
                             NOTE_C7};
 short victoryProgress = -1;
-unsigned short startup[] PROGMEM = {NOTE_C5,NOTE_C5,0,NOTE_F5,
+const uint16_t startup[] PROGMEM = {NOTE_C5,NOTE_C5,0,NOTE_F5,
                             NOTE_FS5,NOTE_F5,NOTE_G5};
 short startupProgress = -1;
-unsigned short roundover[] PROGMEM = {NOTE_C5,NOTE_F5,0,NOTE_F5,
+const uint16_t roundover[] PROGMEM = {NOTE_C5,NOTE_F5,0,NOTE_F5,
                               NOTE_F5,NOTE_EXT, // double
                               NOTE_E5,
                               NOTE_D5,NOTE_EXT, // double
                               NOTE_C5,
                               NOTE_E4,0,NOTE_E4,NOTE_C4};
 short roundoverProgress = -1;
-unsigned short credits[] PROGMEM = {NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,
+const uint16_t credits[] PROGMEM = {NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,
                             0,0,
                             NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,
                             0,0,0,0,0,0,
@@ -94,6 +94,7 @@ unsigned short credits[] PROGMEM = {NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,
                             NOTE_FS6,NOTE_GS6,NOTE_FS6,NOTE_F6,
                             0,0,0,0,0,0,0,0,0,0};
 byte creditsprogress = 0;
+uint16_t blip = NOTE_C4;
 
 void setup() {
   // voodoo timer (http://letsmakerobots.com/node/28278) for ticker and music
@@ -331,12 +332,12 @@ void loop() {
 
 ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
   if (state == 4) {
-    playNote(credits[creditsprogress], 100);
+    playNote(&credits[creditsprogress], 100);
     creditsprogress++;
     if (creditsprogress == sizeof(credits)/sizeof(short)) creditsprogress = 0;
   } else if (startupProgress > -1 && startupProgress < sizeof(startup) / sizeof(short)) {
     // startup music
-    playNote(startup[startupProgress], 100);
+    playNote(&startup[startupProgress], 100);
     startupProgress++;
   } else if (state == 1) {
     /* Ticks:
@@ -349,20 +350,20 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
       int elapsed = (millis() - roundStart)/10, // round off to 10s
           elapsedP = (millis() - roundStart)/10/roundLength; // as percentage
       if (elapsedP < 50 && t % 8 == 0) {
-        playNote(NOTE_C4, 10);
+        playNote(&blip, 10);
       } else if (elapsedP >= 50 && elapsedP < 70 && t % 4 == 0) {
-        playNote(NOTE_C4, 10);
+        playNote(&blip, 10);
       } else if (elapsedP >= 70 && elapsedP < 90 && t % 2 == 0) {
-        playNote(NOTE_C4, 10);
+        playNote(&blip, 10);
       } else if (elapsedP >= 90) {
-        playNote(NOTE_C4, 10);
+        playNote(&blip, 10);
       }
     } else {
       // if teams are close, give determination
       if (megalovania % actionlength < 2) { // first two notes
-        playNote(actiondiff[megalovania/actionlength], 50);
+        playNote(&actiondiff[megalovania/actionlength], 50);
       } else { // other melody
-        playNote(actioncommon[megalovania%actionlength-2], 50);
+        playNote(&actioncommon[megalovania%actionlength-2], 50);
       }
       megalovania++;
       if (megalovania == sizeof(actiondiff)*actionlength/sizeof(short)) megalovania = 0;
@@ -370,7 +371,7 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
   } else if (state == 3 && victoryProgress > -1 &&
              victoryProgress < sizeof(victory)/sizeof(short)) {
     // victory music
-    playNote(victory[victoryProgress], 50);
+    playNote(&victory[victoryProgress], 50);
     victoryProgress++;
   } else if (state == 2 && roundoverProgress > -1 &&
              roundoverProgress < sizeof(roundover)/sizeof(short)) {
@@ -384,20 +385,21 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
 }
 
 //void playNoteFromNonUniformMelodyAtSpecifiedLocation
-void pnfnumasl(unsigned short *melody, short location, unsigned short len) {
+void pnfnumasl(const uint16_t *melody, short location, unsigned short len) {
   if (melody[location] != NOTE_EXT) {
     byte extenders = 1;
     while (melody[location+extenders] == NOTE_EXT
            && location+extenders <= sizeof(melody)/sizeof(short)) {
       extenders++;
     }
-    playNote(melody[location], len*extenders);
+    playNote(&melody[location], len*extenders);
   }
 }
 
-void playNote(unsigned short note, unsigned short len) {
-  if (note > 0) {
-    tone(10, note, len);
+void playNote(const uint16_t *note, unsigned short len) {
+  uint16_t freq = pgm_read_word_near(note);
+  if (freq > 0) {
+    tone(10, freq, len);
   }
 }
 
@@ -448,3 +450,4 @@ void reread() {
     lcd.print("words.txt");
   }
 }
+
