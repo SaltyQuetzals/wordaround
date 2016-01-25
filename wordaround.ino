@@ -1,3 +1,10 @@
+/**
+ * Heartache
+ * Bonetrousle
+ * Kirby
+ * Devesh's hotline miami
+ */
+
 #include <LiquidCrystal.h>
 #include <SPI.h>
 #include <SD.h>
@@ -7,8 +14,8 @@
 // Configurable
 #define pointsToWin  2  // point to win a game
 #define preloadWords 5  // number of words to load into memory
-#define minRound     4 // minimum number and
-#define maxRound     6 // maximum number of seconds a game lasts
+#define minRound     40  // minimum and
+#define maxRound     60  // maximum number of seconds a game lasts
 
 // Don't change below
 LiquidCrystal lcd(6, 7, 5, 8, 3, 2);
@@ -50,54 +57,75 @@ byte a[8] = {14,10,14,10,10,0,31};
 // http://onlinesequencer.net/155305
 const uint16_t actiondiff[] PROGMEM = {NOTE_D5,NOTE_C5,NOTE_B4,NOTE_AS4};
 const uint16_t actioncommon[] PROGMEM = {NOTE_D6,0,
-                              NOTE_A5,0,0,NOTE_GS5,
-                              0,NOTE_G5,0,NOTE_F5,
-                              0,NOTE_D5,NOTE_F5,NOTE_G5};
+                                         NOTE_A5,0,0,NOTE_GS5,
+                                         0,NOTE_G5,0,NOTE_F5,
+                                         0,NOTE_D5,NOTE_F5,NOTE_G5};
 byte actionlength = sizeof(actioncommon)/sizeof(short)+2;
 short megalovania = -1;
 byte t = 0;
 // http://onlinesequencer.net/123623
 const uint16_t victory[] PROGMEM = {NOTE_C5,NOTE_E5,NOTE_G5,NOTE_C6,
-                            NOTE_G5,NOTE_E6,NOTE_G6,0,
-                            0,NOTE_E6,0,0,
-                            NOTE_GS4,NOTE_C5,NOTE_DS5,NOTE_GS5,
-                            NOTE_C6,NOTE_DS6,NOTE_GS6,0,
-                            0,NOTE_DS6,0,0,
-                            NOTE_AS4,NOTE_D5,NOTE_F5,NOTE_AS5,
-                            NOTE_D6,NOTE_F5,NOTE_AS6,NOTE_C6,
-                            NOTE_D6,NOTE_F5,NOTE_AS6,0,
-                            0,0,NOTE_AS6,NOTE_AS6,
-                            NOTE_C7};
+                                    NOTE_G5,NOTE_E6,NOTE_G6,0,
+                                    0,NOTE_E6,0,0,
+                                    NOTE_GS4,NOTE_C5,NOTE_DS5,NOTE_GS5,
+                                    NOTE_C6,NOTE_DS6,NOTE_GS6,0,
+                                    0,NOTE_DS6,0,0,
+                                    NOTE_AS4,NOTE_D5,NOTE_F5,NOTE_AS5,
+                                    NOTE_D6,NOTE_F5,NOTE_AS6,NOTE_C6,
+                                    NOTE_D6,NOTE_F5,NOTE_AS6,0,
+                                    0,0,NOTE_AS6,NOTE_AS6,
+                                    NOTE_C7};
 short victoryProgress = -1;
+// custom
 const uint16_t startup[] PROGMEM = {NOTE_C5,NOTE_C5,0,NOTE_F5,
-                            NOTE_FS5,NOTE_F5,NOTE_G5};
+                                    NOTE_FS5,NOTE_F5,NOTE_G5};
 short startupProgress = -1;
+// messed-up mario
 const uint16_t roundover[] PROGMEM = {NOTE_C5,NOTE_F5,0,NOTE_F5,
-                              NOTE_F5,NOTE_EXT, // double
-                              NOTE_E5,
-                              NOTE_D5,NOTE_EXT, // double
-                              NOTE_C5,
-                              NOTE_E4,0,NOTE_E4,NOTE_C4};
+                                      NOTE_F5,NOTE_EXT, // double
+                                      NOTE_E5,
+                                      NOTE_D5,NOTE_EXT, // double
+                                      NOTE_C5,
+                                      NOTE_E4,0,NOTE_E4,NOTE_C4};
 short roundoverProgress = -1;
+// http://onlinesequencer.net/159431
+const uint16_t muffet[] PROGMEM = {NOTE_F6,0,NOTE_C6,0,
+                                   NOTE_GS5,0,NOTE_F5,0,
+                                   0,NOTE_B5,NOTE_AS5,0,
+                                   NOTE_AS5,NOTE_GS5,NOTE_DS5,NOTE_F5,
+                                   0,NOTE_C6,NOTE_AS5,NOTE_GS5,
+                                   NOTE_AS5,NOTE_C6,NOTE_DS5,NOTE_F5,
+                                   NOTE_GS5,NOTE_F5,NOTE_DS5,NOTE_F6,
+                                   0,NOTE_C6,NOTE_GS5,NOTE_DS5,
+                                   NOTE_F5,0,0,0,
+                                   NOTE_G5,NOTE_G5,0,0,
+                                   NOTE_GS5,NOTE_GS5,0,0,
+                                   NOTE_AS5,NOTE_AS5,0,0,
+                                   NOTE_C7,NOTE_C7,NOTE_AS6,NOTE_AS6,
+                                   NOTE_F7,NOTE_F7,0,0,
+                                   NOTE_E7,NOTE_E7,NOTE_CS7,NOTE_CS7,
+                                   NOTE_C7,NOTE_C7};
+short muffetprogress = -1;
+// http://onlinesequencer.net/167319
 const uint16_t credits[] PROGMEM = {NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,
-                            0,0,
-                            NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,
-                            0,0,0,0,0,0,
-                            NOTE_D6,NOTE_FS6,NOTE_GS6,NOTE_A6,
-                            0,0,
-                            NOTE_D6,NOTE_FS6,NOTE_GS6,NOTE_A6,
-                            0,0,0,0,0,0,
-                            NOTE_B5,NOTE_E6,NOTE_FS6,NOTE_GS6,
-                            0,0,
-                            NOTE_B5,NOTE_E6,NOTE_FS6,NOTE_GS6,
-                            0,0,0,0,0,0,
-                            NOTE_FS6,NOTE_GS6,NOTE_FS6,NOTE_F6,
-                            0,0,0,0,0,0,0,0,0,0};
+                                    0,0,
+                                    NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,
+                                    0,0,0,0,0,0,
+                                    NOTE_D6,NOTE_FS6,NOTE_GS6,NOTE_A6,
+                                    0,0,
+                                    NOTE_D6,NOTE_FS6,NOTE_GS6,NOTE_A6,
+                                    0,0,0,0,0,0,
+                                    NOTE_B5,NOTE_E6,NOTE_FS6,NOTE_GS6,
+                                    0,0,
+                                    NOTE_B5,NOTE_E6,NOTE_FS6,NOTE_GS6,
+                                    0,0,0,0,0,0,
+                                    NOTE_FS6,NOTE_GS6,NOTE_FS6,NOTE_F6,
+                                    0,0,0,0,0,0,0,0,0,0};
 byte creditsprogress = 0;
 uint16_t blip = NOTE_C4;
 
 void setup() {
-  // voodoo timer (http://letsmakerobots.com/node/28278) for ticker and music
+  // voodoo! it's a timer (http://letsmakerobots.com/node/28278) for ticks and music
   noInterrupts(); // disable all interrupts
   TCCR1A = TCCR1B = TCNT1 = 0;
   OCR1A = 16000000/256/8; // 8Hz
@@ -140,31 +168,20 @@ void loop() {
   buttonA = analogRead(3) > 500 ? true : false; // value are either 0 or 1023
   buttonB = analogRead(4) > 500 ? true : false; // so map > 500 to HIGH
   buttonC = analogRead(5) > 500 ? true : false; // and anything below to LOW
-  /*Serial.print(analogRead(3));
-  Serial.print(" ");
-  Serial.print(analogRead(4));
-  Serial.print(" ");
-  Serial.print(analogRead(5));
-  Serial.print(" ");
-  Serial.print(buttonA);
-  Serial.print(" ");
-  Serial.print(buttonB);
-  Serial.print(" ");
-  Serial.print(buttonC);
-  Serial.println();*/
   if ((buttonA || buttonB || buttonC) && !registeredPress) {
     registeredPress = true; // press and hold triggers only once
     pressed = true;
   } else if (!(buttonA || buttonB || buttonC)) { // keyup
     registeredPress = false;
   }
-  if (state != prevState || pressed || state == 1 || redraws > 0) { // avoid flashing LCD
+  if (state != prevState || pressed || state == 1 ||
+      redraws > 0 || (buttonA && buttonB && state == 0)) { // avoid flashing LCD
     prevState = state;
     if (redraws > 0) redraws--;
     switch (state) {
       case 0: // welcome
         lcd.clear();
-        lcd.print("WordAround v2");
+        lcd.print("WordAround v5");
         lcd.write(byte(1)); // little symbol
         lcd.setCursor(0,1);
         lcd.print("Press ");
@@ -177,10 +194,10 @@ void loop() {
           roundStart = millis();
           Apoints = Bpoints = pointTotal = 0;
           gaveTeamPoint = false;
-          megalovania = victoryProgress = roundoverProgress = -1;
+          megalovania = muffetprogress = victoryProgress = roundoverProgress = -1;
           t = 0;
           roundLength = random(minRound, maxRound);
-        } else if (buttonA && buttonB && pressed) {
+        } else if (buttonA && buttonB) {
           state = 4; // :^)
           creditsprogress = 0;
         }
@@ -277,6 +294,10 @@ void loop() {
             }
             if (megalovania == -1 && Apoints >= pointsToWin-1 && Bpoints >= pointsToWin-1) {
               megalovania = 0; // it's getting close! is everybody determined enough?
+            } else if (muffetprogress == -1
+                       && (Apoints >= pointsToWin-1 || Bpoints >= pointsToWin-1)
+                       && (Apoints == 0 || Bpoints == 0)) {
+              muffetprogress = 0;
             }
             redraws++;
           } 
@@ -312,7 +333,6 @@ void loop() {
       case 4: // easter egg, needs change
         lcd.clear();
         lcd.print("juan.");
-        //        |                |
         lcd.setCursor(0,1);
         // waiting for more submissions...
         lcd.write(byte(2));
@@ -334,8 +354,8 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
   if (state == 4) {
     playNote(&credits[creditsprogress], 100);
     creditsprogress++;
-    if (creditsprogress == sizeof(credits)/sizeof(short)) creditsprogress = 0;
-  } else if (startupProgress > -1 && startupProgress < sizeof(startup) / sizeof(short)) {
+    if (creditsprogress == sizeof(credits)/sizeof(uint16_t)) creditsprogress = 0;
+  } else if (startupProgress > -1 && startupProgress < sizeof(startup)/sizeof(uint16_t)) {
     // startup music
     playNote(&startup[startupProgress], 100);
     startupProgress++;
@@ -346,7 +366,19 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
     until 10%: every 100ms
     5 seconds left: every 50ms
     */
-    if (megalovania == -1) {
+    if (megalovania > -1) {
+      // if teams are close, give determination
+      if (megalovania % actionlength < 2) { // first two notes
+        playNote(&actiondiff[megalovania/actionlength], 50);
+      } else { // other melody
+        playNote(&actioncommon[megalovania%actionlength-2], 50);
+      }
+      megalovania++;
+      if (megalovania == sizeof(actiondiff)*actionlength/sizeof(uint16_t)) megalovania = 0;
+    } else if (muffetprogress > -1) {
+      playNote(&muffet[muffetprogress++], 50);
+      if (muffetprogress == sizeof(muffet)/sizeof(uint16_t)) muffetprogress = 0;
+    } else {
       int elapsed = (millis() - roundStart)/10, // round off to 10s
           elapsedP = (millis() - roundStart)/10/roundLength; // as percentage
       if (elapsedP < 50 && t % 8 == 0) {
@@ -358,15 +390,6 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
       } else if (elapsedP >= 90) {
         playNote(&blip, 10);
       }
-    } else {
-      // if teams are close, give determination
-      if (megalovania % actionlength < 2) { // first two notes
-        playNote(&actiondiff[megalovania/actionlength], 50);
-      } else { // other melody
-        playNote(&actioncommon[megalovania%actionlength-2], 50);
-      }
-      megalovania++;
-      if (megalovania == sizeof(actiondiff)*actionlength/sizeof(short)) megalovania = 0;
     }
   } else if (state == 3 && victoryProgress > -1 &&
              victoryProgress < sizeof(victory)/sizeof(short)) {
