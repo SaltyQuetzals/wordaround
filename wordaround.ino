@@ -48,89 +48,100 @@ short prevNote = 0;
   B01110,
   B00000,
 };*/
-byte curvedbeta[8] = {16,16,10,13,9,9,22};
-byte f[8] = {3,4,4,14,4,4,24};
-byte g[8] = {31,31,4,31,31,14,17};
-byte a[8] = {14,10,14,10,10,0,31};
+byte curvedbeta[8] = {16, 16, 10, 13, 9, 9, 22};
+byte f[8] = {3, 4, 4, 14, 4, 4, 24};
+byte g[8] = {31, 31, 4, 31, 31, 14, 17};
+byte a[8] = {14, 10, 14, 10, 10, 0, 31};
 
 // mission critical:
 // http://onlinesequencer.net/155305
-const uint16_t actiondiff[] PROGMEM = {NOTE_D5,NOTE_C5,NOTE_B4,NOTE_AS4};
-const uint16_t actioncommon[] PROGMEM = {NOTE_D6,0,
-                                         NOTE_A5,0,0,NOTE_GS5,
-                                         0,NOTE_G5,0,NOTE_F5,
-                                         0,NOTE_D5,NOTE_F5,NOTE_G5};
-byte actionlength = sizeof(actioncommon)/sizeof(short)+2;
+const uint16_t actiondiff[] PROGMEM = {NOTE_D5, NOTE_C5, NOTE_B4, NOTE_AS4};
+const uint16_t actioncommon[] PROGMEM = {NOTE_D6, 0,
+                                         NOTE_A5, 0, 0, NOTE_GS5,
+                                         0, NOTE_G5, 0, NOTE_F5,
+                                         0, NOTE_D5, NOTE_F5, NOTE_G5
+                                        };
+byte actionlength = sizeof(actioncommon) / sizeof(short) + 2;
 short megalovania = -1;
 byte t = 0;
 // http://onlinesequencer.net/123623
-const uint16_t victory[] PROGMEM = {NOTE_C5,NOTE_E5,NOTE_G5,NOTE_C6,
-                                    NOTE_G5,NOTE_E6,NOTE_G6,0,
-                                    0,NOTE_E6,0,0,
-                                    NOTE_GS4,NOTE_C5,NOTE_DS5,NOTE_GS5,
-                                    NOTE_C6,NOTE_DS6,NOTE_GS6,0,
-                                    0,NOTE_DS6,0,0,
-                                    NOTE_AS4,NOTE_D5,NOTE_F5,NOTE_AS5,
-                                    NOTE_D6,NOTE_F5,NOTE_AS6,NOTE_C6,
-                                    NOTE_D6,NOTE_F5,NOTE_AS6,0,
-                                    0,0,NOTE_AS6,NOTE_AS6,
-                                    NOTE_C7};
+const uint16_t victory[] PROGMEM = {NOTE_C5, NOTE_E5, NOTE_G5, NOTE_C6,
+                                    NOTE_G5, NOTE_E6, NOTE_G6, 0,
+                                    0, NOTE_E6, 0, 0,
+                                    NOTE_GS4, NOTE_C5, NOTE_DS5, NOTE_GS5,
+                                    NOTE_C6, NOTE_DS6, NOTE_GS6, 0,
+                                    0, NOTE_DS6, 0, 0,
+                                    NOTE_AS4, NOTE_D5, NOTE_F5, NOTE_AS5,
+                                    NOTE_D6, NOTE_F5, NOTE_AS6, NOTE_C6,
+                                    NOTE_D6, NOTE_F5, NOTE_AS6, 0,
+                                    0, 0, NOTE_AS6, NOTE_AS6,
+                                    NOTE_C7
+                                   };
 short victoryProgress = -1;
 // custom
-const uint16_t startup[] PROGMEM = {NOTE_C5,NOTE_C5,0,NOTE_F5,
-                                    NOTE_FS5,NOTE_F5,NOTE_G5};
+const uint16_t startup[] PROGMEM = {NOTE_C5, NOTE_C5, 0, NOTE_F5,
+                                    NOTE_FS5, NOTE_F5, NOTE_G5
+                                   };
 short startupProgress = -1;
 // messed-up mario
-const uint16_t roundover[] PROGMEM = {NOTE_C5,NOTE_F5,0,NOTE_F5,
-                                      NOTE_F5,NOTE_EXT, // double
+const uint16_t roundover[] PROGMEM = {NOTE_C5, NOTE_F5, 0, NOTE_F5,
+                                      NOTE_F5, NOTE_EXT, // double
                                       NOTE_E5,
-                                      NOTE_D5,NOTE_EXT, // double
+                                      NOTE_D5, NOTE_EXT, // double
                                       NOTE_C5,
-                                      NOTE_E4,0,NOTE_E4,NOTE_C4};
+                                      NOTE_E4, 0, NOTE_E4, NOTE_C4
+                                     };
 short roundoverProgress = -1;
 // http://onlinesequencer.net/159431
-const uint16_t muffet[] PROGMEM = {NOTE_F6,0,NOTE_C6,0,
-                                   NOTE_GS5,0,NOTE_F5,0,
-                                   0,NOTE_B5,NOTE_AS5,0,
-                                   NOTE_AS5,NOTE_GS5,NOTE_DS5,NOTE_F5,
-                                   0,NOTE_C6,NOTE_AS5,NOTE_GS5,
-                                   NOTE_AS5,NOTE_C6,NOTE_DS5,NOTE_F5,
-                                   NOTE_GS5,NOTE_F5,NOTE_DS5,NOTE_F6,
-                                   0,NOTE_C6,NOTE_GS5,NOTE_DS5,
-                                   NOTE_F5,0,0,0,
-                                   NOTE_G5,NOTE_G5,0,0,
-                                   NOTE_GS5,NOTE_GS5,0,0,
-                                   NOTE_AS5,NOTE_AS5,0,0,
-                                   NOTE_C7,NOTE_C7,NOTE_AS6,NOTE_AS6,
-                                   NOTE_F7,NOTE_F7,0,0,
-                                   NOTE_E7,NOTE_E7,NOTE_CS7,NOTE_CS7,
-                                   NOTE_C7,NOTE_C7};
+const uint16_t muffet[] PROGMEM = {NOTE_F6, 0, NOTE_C6, 0,
+                                   NOTE_GS5, 0, NOTE_F5, 0,
+                                   0, NOTE_B5, NOTE_AS5, 0,
+                                   NOTE_AS5, NOTE_GS5, NOTE_DS5, NOTE_F5,
+                                   0, NOTE_C6, NOTE_AS5, NOTE_GS5,
+                                   NOTE_AS5, NOTE_C6, NOTE_DS5, NOTE_F5,
+                                   NOTE_GS5, NOTE_F5, NOTE_DS5, NOTE_F6,
+                                   0, NOTE_C6, NOTE_GS5, NOTE_DS5,
+                                   NOTE_F5, 0, 0, 0,
+                                   NOTE_G5, NOTE_G5, 0, 0,
+                                   NOTE_GS5, NOTE_GS5, 0, 0,
+                                   NOTE_AS5, NOTE_AS5, 0, 0,
+                                   NOTE_C7, NOTE_C7, NOTE_AS6, NOTE_AS6,
+                                   NOTE_F7, NOTE_F7, 0, 0,
+                                   NOTE_E7, NOTE_E7, NOTE_CS7, NOTE_CS7,
+                                   NOTE_C7, NOTE_C7
+                                  };
 short muffetprogress = -1;
 // http://onlinesequencer.net/167319
-const uint16_t credits[] PROGMEM = {NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,
-                                    0,0,
-                                    NOTE_CS6,NOTE_FS6,NOTE_GS6,NOTE_A6,
-                                    0,0,0,0,0,0,
-                                    NOTE_D6,NOTE_FS6,NOTE_GS6,NOTE_A6,
-                                    0,0,
-                                    NOTE_D6,NOTE_FS6,NOTE_GS6,NOTE_A6,
-                                    0,0,0,0,0,0,
-                                    NOTE_B5,NOTE_E6,NOTE_FS6,NOTE_GS6,
-                                    0,0,
-                                    NOTE_B5,NOTE_E6,NOTE_FS6,NOTE_GS6,
-                                    0,0,0,0,0,0,
-                                    NOTE_FS6,NOTE_GS6,NOTE_FS6,NOTE_F6,
-                                    0,0,0,0,0,0,0,0,0,0};
+const uint16_t credits[] PROGMEM = {NOTE_CS6, NOTE_FS6, NOTE_GS6, NOTE_A6,
+                                    0, 0,
+                                    NOTE_CS6, NOTE_FS6, NOTE_GS6, NOTE_A6,
+                                    0, 0, 0, 0, 0, 0,
+                                    NOTE_D6, NOTE_FS6, NOTE_GS6, NOTE_A6,
+                                    0, 0,
+                                    NOTE_D6, NOTE_FS6, NOTE_GS6, NOTE_A6,
+                                    0, 0, 0, 0, 0, 0,
+                                    NOTE_B5, NOTE_E6, NOTE_FS6, NOTE_GS6,
+                                    0, 0,
+                                    NOTE_B5, NOTE_E6, NOTE_FS6, NOTE_GS6,
+                                    0, 0, 0, 0, 0, 0,
+                                    NOTE_FS6, NOTE_GS6, NOTE_FS6, NOTE_F6,
+                                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+                                   };
 byte creditsprogress = 0;
+short repriseProgress = 0;
+const uint16_t repriseMelody[] PROGMEM = {NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_B5, NOTE_EXT, NOTE_DS5, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_DS5, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_DS6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_DS6, NOTE_EXT, NOTE_DS5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_B5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_B5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_B5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_AS5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_AS5, NOTE_EXT, NOTE_G6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_B5, NOTE_EXT, NOTE_DS5, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_DS5, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_DS6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_DS6, NOTE_EXT, NOTE_DS5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_B5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_B5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_B5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_AS5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_AS5, NOTE_EXT, NOTE_G6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_B5, NOTE_EXT, NOTE_DS5, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_DS5, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_DS6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_DS6, NOTE_EXT, NOTE_DS5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_B5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_B5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_B5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_AS5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_AS5, NOTE_EXT, NOTE_G6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_AS5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_AS5, NOTE_EXT, NOTE_G6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_G5, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E5, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_CS5, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_CS5, NOTE_EXT, NOTE_G5, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_G6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_G5, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E5, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_CS5, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_CS5, NOTE_EXT, NOTE_G5, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_A6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_FS6, 0, NOTE_E6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_A6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_A5, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_FS6, 0, NOTE_A6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_G6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_G6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_B6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_A6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_FS6, 0, NOTE_E6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_A6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_A5, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_FS6, 0, NOTE_A6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_G6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_G6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_B6, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_G4, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_D5, NOTE_EXT, 0, 0, NOTE_A5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_A6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_G4, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_D5, NOTE_EXT, 0, 0, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_FS4, NOTE_EXT, NOTE_CS5, NOTE_EXT, NOTE_CS5, NOTE_EXT, 0, 0, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_C7, 0, NOTE_C7, NOTE_EXT, NOTE_B6, NOTE_EXT, NOTE_A6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, 0, 0, NOTE_FS4, NOTE_EXT, NOTE_CS5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E4, NOTE_EXT, NOTE_G4, NOTE_EXT, NOTE_G4, NOTE_EXT, 0, 0, NOTE_B5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_A6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_A4, NOTE_EXT, NOTE_E5, NOTE_EXT, NOTE_EXT, NOTE_EXT, 0, 0, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E6, 0, NOTE_CS5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_AS4, NOTE_EXT, NOTE_E5, NOTE_EXT, NOTE_E5, NOTE_EXT, 0, 0, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_B4, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_FS5, NOTE_EXT, 0, 0, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_G4, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_D5, NOTE_EXT, 0, 0, NOTE_A5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_A6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_G4, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_D5, NOTE_EXT, 0, 0, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_FS4, NOTE_EXT, NOTE_CS5, NOTE_EXT, NOTE_CS5, NOTE_EXT, 0, 0, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_B6, NOTE_C7, NOTE_CS5, NOTE_EXT, NOTE_EXT, NOTE_EXT, 0, NOTE_A6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, 0, 0, NOTE_FS4, NOTE_EXT, NOTE_CS5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E4, NOTE_EXT, NOTE_G4, NOTE_EXT, NOTE_G4, NOTE_EXT, 0, 0, NOTE_B5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_A6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_A4, NOTE_EXT, NOTE_E5, NOTE_EXT, NOTE_EXT, NOTE_EXT, 0, 0, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E6, 0, NOTE_CS5, NOTE_EXT, NOTE_FS6, NOTE_EXT, NOTE_AS4, NOTE_EXT, NOTE_E5, NOTE_EXT, NOTE_E5, NOTE_EXT, 0, 0, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_B4, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_FS5, NOTE_EXT, 0, 0, NOTE_E6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D6, NOTE_EXT, NOTE_A5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_E5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_GS4, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_G4, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E5, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_A4, NOTE_EXT, NOTE_A5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_E5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_GS4, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_G4, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_FS5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_E5, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_EXT, NOTE_EXT, 0, 0, NOTE_A5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_E5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_A4, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_D5, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT, NOTE_EXT};
 uint16_t blip = NOTE_C4;
+byte repetition = 0;
+byte tOrF = 0;
+File play;
 
 void setup() {
   // voodoo! it's a timer (http://letsmakerobots.com/node/28278) for ticks and music
   noInterrupts(); // disable all interrupts
   TCCR1A = TCCR1B = TCNT1 = 0;
-  OCR1A = 16000000/256/8; // 8Hz
+  OCR1A = 16000000 / 256 / 8; // 8Hz
   TCCR1B |= (1 << WGM12); // CTC mode
-  TCCR1B |= (1 << CS12); // 256 prescaler 
+  TCCR1B |= (1 << CS12); // 256 prescaler
   TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
   interrupts(); // enable all interrupts
   randomSeed(analogRead(10)); // pin 10 is free, so seed random using that
@@ -148,19 +159,39 @@ void setup() {
   }
   lcd.clear();
   lcd.print("Initializing");
-  lcd.setCursor(0,1);
+  lcd.setCursor(0, 1);
   lcd.print("SD card");
   // see if the card is present and can be initialized:
   if (!SD.begin(4)) { // SD on pin 4
     lcd.clear();
     lcd.print("No or invalid");
-    lcd.setCursor(0,1);
+    lcd.setCursor(0, 1);
     lcd.print("SD on digital 4");
     // don't do anything more:
     return;
   }
   roundStart = millis();
   startupProgress = 0;
+
+  play = SD.open("play.txt");
+  if (play) {
+    // read from the file until there's nothing else in it:
+    while (play.available()) {
+      if (play.read() == 0) {
+        tOrF = 0;
+      }
+      else  {
+        tOrF = 1;
+      }
+      Serial.println("tOrF = " + tOrF);
+    }
+    // close the file:
+    play.close();
+  } else {
+    // if the file didn't open, print an error:
+    Serial.println("error opening test.txt");
+  }
+  tOrF = 1;
 }
 
 void loop() {
@@ -180,10 +211,13 @@ void loop() {
     if (redraws > 0) redraws--;
     switch (state) {
       case 0: // welcome
+        if (tOrF == 0)  {
+          state = 42;
+        }
         lcd.clear();
         lcd.print("WordAround v5");
         lcd.write(byte(1)); // little symbol
-        lcd.setCursor(0,1);
+        lcd.setCursor(0, 1);
         lcd.print("Press ");
         lcd.write(0b01111110); // ->
         lcd.print(" button!");
@@ -203,7 +237,7 @@ void loop() {
         }
         break;
       case 1: // playing
-        if ((millis() - roundStart)/1000 > roundLength) {
+        if ((millis() - roundStart) / 1000 > roundLength) {
           state = 2; // time's out!
           roundoverProgress = 0;
         }
@@ -225,7 +259,7 @@ void loop() {
           int line = 0;
           lcd.clear();
           for (int i = 0; i < currentLength; i++)  {
-            if (i == 15 && phrase[i+1] != ' ' && line == 0) {
+            if (i == 15 && phrase[i + 1] != ' ' && line == 0) {
               int j = 0;
               for (int k = 15; k > 0; k--)  {
                 if (phrase[k] == ' ')  {
@@ -266,7 +300,7 @@ void loop() {
           lcd.print(" vs. B:");
           lcd.print(Bpoints);
           lcd.write(0b01111110); // ->
-          if (roundoverProgress == sizeof(roundover)/sizeof(short)) {
+          if (roundoverProgress == sizeof(roundover) / sizeof(short)) {
             if (buttonC) {
               prevWordIndex = -1;
               roundStart = millis();
@@ -274,9 +308,9 @@ void loop() {
               state = 1; // start another round
               reread(); // new words
               roundoverProgress = -1;
-              redraws+=2;
+              redraws += 2;
             }
-            lcd.setCursor(0,1);
+            lcd.setCursor(0, 1);
             lcd.print("Press next!");
           }
         } else {
@@ -292,18 +326,18 @@ void loop() {
             if (Apoints >= pointsToWin || Bpoints >= pointsToWin) {
               state = 3; // someone won
             }
-            if (megalovania == -1 && Apoints >= pointsToWin-1 && Bpoints >= pointsToWin-1) {
+            if (megalovania == -1 && Apoints >= pointsToWin - 1 && Bpoints >= pointsToWin - 1) {
               megalovania = 0; // it's getting close! is everybody determined enough?
             } else if (muffetprogress == -1
-                       && (Apoints >= pointsToWin-1 || Bpoints >= pointsToWin-1)
+                       && (Apoints >= pointsToWin - 1 || Bpoints >= pointsToWin - 1)
                        && (Apoints == 0 || Bpoints == 0)) {
               muffetprogress = 0;
             }
             redraws++;
-          } 
+          }
           lcd.clear();
           lcd.print("Round over.");
-          lcd.setCursor(0,1);
+          lcd.setCursor(0, 1);
           lcd.write(0b01111111); // <-
           lcd.print("A:");
           lcd.print(Apoints);
@@ -315,7 +349,7 @@ void loop() {
       case 3: // someone won!
         lcd.clear();
         lcd.print("Game over.");
-        lcd.setCursor(0,1);
+        lcd.setCursor(0, 1);
         if (Apoints >= pointsToWin) {
           lcd.print("Team A won!");
         } else if (Bpoints >= pointsToWin) {
@@ -333,7 +367,7 @@ void loop() {
       case 4: // easter egg, needs change
         lcd.clear();
         lcd.print("juan.");
-        lcd.setCursor(0,1);
+        lcd.setCursor(0, 1);
         // waiting for more submissions...
         lcd.write(byte(2));
         lcd.write(byte(3));
@@ -342,9 +376,13 @@ void loop() {
           state = 0;
         }
         break;
+      case 42:  //Thank you.
+        lcd.clear();
+        lcd.print("So long");
+        break;
       default:
         // nothing here
-      break;
+        break;
     }
   }
   delay(5);
@@ -354,8 +392,8 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
   if (state == 4) {
     playNote(&credits[creditsprogress], 100);
     creditsprogress++;
-    if (creditsprogress == sizeof(credits)/sizeof(uint16_t)) creditsprogress = 0;
-  } else if (startupProgress > -1 && startupProgress < sizeof(startup)/sizeof(uint16_t)) {
+    if (creditsprogress == sizeof(credits) / sizeof(uint16_t)) creditsprogress = 0;
+  } else if (startupProgress > -1 && startupProgress < sizeof(startup) / sizeof(uint16_t)) {
     // startup music
     playNote(&startup[startupProgress], 100);
     startupProgress++;
@@ -369,18 +407,18 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
     if (megalovania > -1) {
       // if teams are close, give determination
       if (megalovania % actionlength < 2) { // first two notes
-        playNote(&actiondiff[megalovania/actionlength], 50);
+        playNote(&actiondiff[megalovania / actionlength], 50);
       } else { // other melody
-        playNote(&actioncommon[megalovania%actionlength-2], 50);
+        playNote(&actioncommon[megalovania % actionlength - 2], 50);
       }
       megalovania++;
-      if (megalovania == sizeof(actiondiff)*actionlength/sizeof(uint16_t)) megalovania = 0;
+      if (megalovania == sizeof(actiondiff)*actionlength / sizeof(uint16_t)) megalovania = 0;
     } else if (muffetprogress > -1) {
       playNote(&muffet[muffetprogress++], 50);
-      if (muffetprogress == sizeof(muffet)/sizeof(uint16_t)) muffetprogress = 0;
+      if (muffetprogress == sizeof(muffet) / sizeof(uint16_t)) muffetprogress = 0;
     } else {
-      int elapsed = (millis() - roundStart)/10, // round off to 10s
-          elapsedP = (millis() - roundStart)/10/roundLength; // as percentage
+      int elapsed = (millis() - roundStart) / 10, // round off to 10s
+          elapsedP = (millis() - roundStart) / 10 / roundLength; // as percentage
       if (elapsedP < 50 && t % 8 == 0) {
         playNote(&blip, 10);
       } else if (elapsedP >= 50 && elapsedP < 70 && t % 4 == 0) {
@@ -392,15 +430,21 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
       }
     }
   } else if (state == 3 && victoryProgress > -1 &&
-             victoryProgress < sizeof(victory)/sizeof(short)) {
+             victoryProgress < sizeof(victory) / sizeof(short)) {
     // victory music
     playNote(&victory[victoryProgress], 50);
     victoryProgress++;
   } else if (state == 2 && roundoverProgress > -1 &&
-             roundoverProgress < sizeof(roundover)/sizeof(short)) {
+             roundoverProgress < sizeof(roundover) / sizeof(short)) {
     // round over music
     pnfnumasl(roundover, roundoverProgress, 50);
     roundoverProgress++;
+    redraws++;
+  }
+  else if (state == 42 && repriseProgress > -1 &&
+           repriseProgress < sizeof(repriseMelody) / sizeof(short))  {
+    pnfnumasl(repriseMelody, repriseProgress, 100);
+    repriseProgress++;
     redraws++;
   }
   t++;
@@ -411,11 +455,11 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
 void pnfnumasl(const uint16_t *melody, short location, unsigned short len) {
   if (melody[location] != NOTE_EXT) {
     byte extenders = 1;
-    while (melody[location+extenders] == NOTE_EXT
-           && location+extenders <= sizeof(melody)/sizeof(short)) {
+    while (melody[location + extenders] == NOTE_EXT
+           && location + extenders <= sizeof(melody) / sizeof(short)) {
       extenders++;
     }
-    playNote(&melody[location], len*extenders);
+    playNote(&melody[location], len * extenders);
   }
 }
 
@@ -445,9 +489,9 @@ void reread() {
         c = dataFile.read(); // to first actual letter
       }
       if (dataFile.position() == 2) {
-        dataFile.seek(dataFile.position()-2);
+        dataFile.seek(dataFile.position() - 2);
       } else {
-        dataFile.seek(dataFile.position()-1);
+        dataFile.seek(dataFile.position() - 1);
       }
       int j = 0;
       while (dataFile.available() && j < 32) {
@@ -469,7 +513,7 @@ void reread() {
   } else {
     lcd.clear();
     lcd.print("Failed to read");
-    lcd.setCursor(0,1);
+    lcd.setCursor(0, 1);
     lcd.print("words.txt");
   }
 }
