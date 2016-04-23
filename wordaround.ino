@@ -232,7 +232,7 @@ void loop() {
           roundLength = random(minRound, maxRound);
         } else if (buttonA && buttonB) {
           state = 4; // :^)
-          repriseProgress = 0;
+          creditsprogress = 0;
         }
         break;
       case 1: // playing
@@ -395,9 +395,9 @@ void loop() {
 
 ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
   if (state == 4) {
-    playNote(&repriseM[repriseProgress], 100);
-    repriseProgress++;
-    if (repriseProgress== sizeof(repriseM) / sizeof(uint16_t)) repriseProgress = 0;
+    playNote(&credits[creditsprogress], 100);
+    creditsprogress++;
+    if (creditsprogress == sizeof(credits) / sizeof(uint16_t)) creditsprogress = 0;
   } else if (startupProgress > -1 && startupProgress < sizeof(startup) / sizeof(uint16_t)) {
     // startup music
     playNote(&startup[startupProgress], 100);
