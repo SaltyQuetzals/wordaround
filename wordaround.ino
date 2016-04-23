@@ -476,6 +476,7 @@ void playNote(const uint16_t *note, unsigned short len) {
   uint16_t freq = pgm_read_word_near(note);
   if (freq > 0) {
     tone(10, freq, len);
+    tone(9, freq, len);
   }
 }
 
