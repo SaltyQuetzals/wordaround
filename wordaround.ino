@@ -1,9 +1,4 @@
-/**
- * Heartache
- * Bonetrousle
- * Kirby
- * Devesh's hotline miami
- */
+// The code sucks and we all know it
 
 #include <LiquidCrystal.h>
 #include <SPI.h>
@@ -14,8 +9,8 @@
 // Configurable
 #define pointsToWin  2  // point to win a game
 #define preloadWords 5  // number of words to load into memory
-#define minRound     40  // minimum and
-#define maxRound     60  // maximum number of seconds a game lasts
+#define minRound     4  // minimum and
+#define maxRound     6  // maximum number of seconds a game lasts
 
 // Don't change below
 LiquidCrystal lcd(6, 7, 5, 8, 3, 2);
@@ -117,8 +112,12 @@ const uint16_t repriseM[] PROGMEM = {NOTE_FS6, NOTE_EXT, NOTE_CS6, NOTE_EXT, NOT
 //PROGRESS
 short repriseProgress = -1;
 
-//Normal beeping noise
-const uint16_t PROGMEM blip = NOTE_C4;
+/* Blip sound feedback
+ 0 Countdown
+ 1 Press
+ 2 Release
+ */
+const uint16_t PROGMEM blips[] = {NOTE_C4, NOTE_C5, NOTE_B4};
 
 File play;
 
@@ -189,7 +188,9 @@ void loop() {
   if ((buttonA || buttonB || buttonC) && !registeredPress) {
     registeredPress = true; // press and hold triggers only once
     pressed = true;
+    playNote(&blips[1], 20);
   } else if (!(buttonA || buttonB || buttonC)) { // keyup
+    if (registeredPress) playNote(&blips[2], 20);
     registeredPress = false;
   }
   if (state != prevState || pressed || state == 1 ||
@@ -246,9 +247,9 @@ void loop() {
           int line = 0;
           lcd.clear();
           for (int i = 0; i < currentLength; i++)  {
-            if (i == 15 && phrase[i + 1] != ' ' && line == 0) {
+            if (i == 16 && phrase[i + 1] != ' ' && line == 0) {
               int j = 0;
-              for (int k = 15; k > 0; k--)  {
+              for (int k = 16; k > 0; k--)  {
                 if (phrase[k] == ' ')  {
                   j = k;
                   break;
@@ -350,7 +351,7 @@ void loop() {
         break;
       case 4: // easter egg, needs change
         lcd.clear();
-        lcd.print("juan.");
+        lcd.print("just ship it.");
         lcd.setCursor(0, 1);
         // waiting for more submissions...
         lcd.write(byte(2));
@@ -399,13 +400,13 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
       int elapsed = (millis() - roundStart) / 10, // round off to 10s
           elapsedP = (millis() - roundStart) / 10 / roundLength; // as percentage
       if (elapsedP < 50 && t % 8 == 0) {
-        playNote(&blip, 10);
+        playNote(&blips[0], 10);
       } else if (elapsedP >= 50 && elapsedP < 70 && t % 4 == 0) {
-        playNote(&blip, 10);
+        playNote(&blips[0], 10);
       } else if (elapsedP >= 70 && elapsedP < 90 && t % 2 == 0) {
-        playNote(&blip, 10);
+        playNote(&blips[0], 10);
       } else if (elapsedP >= 90) {
-        playNote(&blip, 10);
+        playNote(&blips[0], 10);
       }
     }
   } else if (state == 3 && victoryProgress > -1 &&
