@@ -1,9 +1,14 @@
-/**
- * Heartache
- * Bonetrousle
- * Kirby
- * Devesh's hotline miami
- */
+/*             _                       
+              | |                      
+   ___ _   _  | |_ __ ___   __ _  ___  
+  / _ \ | | | | | '_ ` _ \ / _` |/ _ \ 
+ |  __/ |_| | | | | | | | | (_| | (_) |
+  \___|\__, | |_|_| |_| |_|\__,_|\___/ 
+        __/ |                          
+       |___/                           
+
+This code sucks and we all know it.
+*/
 
 #include <LiquidCrystal.h>
 #include <SPI.h>
@@ -130,7 +135,7 @@ const uint16_t dogsongM[] PROGMEM = {NOTE_CS4, 0, NOTE_GS6, 0, NOTE_CS4, NOTE_F6
 short dogsongProgress = -1;
 
 //Normal beeping noise
-uint16_t blip = NOTE_C4;
+const uint16_t PROGMEM blip = NOTE_C4;
 
 File play;
 
@@ -371,7 +376,7 @@ void loop() {
         break;
       case 4: // easter egg, needs change
         lcd.clear();
-        lcd.print("juan.");
+        lcd.print("just ship it.");
         lcd.setCursor(0, 1);
         // waiting for more submissions...
         lcd.write(byte(2));
@@ -422,7 +427,7 @@ ISR(TIMER1_COMPA_vect) { // timer runs at 8Hz via magic
       if (muffetprogress == sizeof(muffetM) / sizeof(uint16_t)) muffetprogress = 0;
     }
     else if (state == 3 && dogsongProgress > -1 && dogsongProgress < sizeof(dogsongM) / sizeof(short) && victoryProgress < 0)  {
-      playNote(&dogsongM[dogsongProgress], 50);
+        playNote(&dogsongM[dogsongProgress], 50);
       dogsongProgress++;
     }
     else {
